@@ -55,6 +55,7 @@ p {
 .grid-4x4 { grid-template-columns: repeat(4, 1fr); font-size: 1.8em; }
 .grid-5x5 { grid-template-columns: repeat(5, 1fr); font-size: 1.5em; }
 .grid-6x6 { grid-template-columns: repeat(6, 1fr); font-size: 1.2em; }
+.grid-10x10 { grid-template-columns: repeat(10, 1fr); font-size: 0.8em; }
 
 
 #schulte-grid.active {

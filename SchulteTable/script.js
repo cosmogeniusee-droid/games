@@ -12,8 +12,6 @@ const currentNumberSpan = document.getElementById('current-number');
 const totalNumbersSpan = document.getElementById('total-numbers');
 const timerSpan = document.getElementById('timer');
 const confettiContainer = document.getElementById('confetti-container');
-// Звуковые эффекты (Используются общедоступные ссылки)
-// Звук для правильного нажатия (Correct / Beep)
 const correctSound = new Audio('correct.mp3');
 const incorrectSound = new Audio('incorrect.mp3');
 const finishSound = new Audio('finish.mp3');
