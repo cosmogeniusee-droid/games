@@ -87,7 +87,6 @@ p {
     background-color: #90EE90; /* Светло-зеленый */
     color: white;
     box-shadow: 0 0 10px rgba(144, 238, 144, 0.8);
-    transform: scale(1.1); /* Выделение */
 }
 
 .incorrect {
@@ -175,9 +174,10 @@ p {
 }
 
 /* Добавляем случайные цвета для конфетти */
-.confetti:nth-child(3n) { --confetti-color: #FF69B4; } /* Розовый */
-.confetti:nth-child(3n+1) { --confetti-color: #90EE90; } /* Светло-зеленый */
-.confetti:nth-child(3n+2) { --confetti-color: #87CEEB; } /* Светло-голубой */
+.confetti:nth-child(4n) { --confetti-color: #FF69B4; } /* Розовый */
+.confetti:nth-child(4n+1) { --confetti-color: #90EE90; } /* Светло-зеленый */
+.confetti:nth-child(4n+2) { --confetti-color: #87CEEB; } /* Светло-голубой */
+.confetti:nth-child(4n+3) { --confetti-color: #f5d12f; } /* Светло-голубой */
 
 
 @keyframes confetti-fall {

@@ -79,11 +79,11 @@ function handleCellClick(event) {
             finishSound.play().catch(e => console.error("Ошибка проигрывания звука: ", e));
             // Победа!
             stopTimer();
-            gameActive = false;
             gridElement.classList.remove('active');
-            displayMessage(`Победа! Ваше время: ${timerSpan.textContent} с`, 'green');
             triggerConfetti();
+            gameActive = false;
             startButton.textContent = 'Сыграть снова';
+            displayMessage(`Победа! Ваше время: ${timerSpan.textContent} с`, 'green');
         }
     } else {
         // Неправильное нажатие
@@ -92,16 +92,11 @@ function handleCellClick(event) {
         cell.classList.add('incorrect');
         
         // Блокируем игру
-        gameActive = false;
         gridElement.classList.remove('active');
         stopTimer();
-        
-        displayMessage('Неправильно! Игра начнется заново через 3 секунды...', 'red');
-
-        // Сброс через 3 секунды
-        setTimeout(() => {
-            resetGame();
-        }, 3000);
+        gameActive = false;
+        startButton.textContent = 'Сыграть снова';        
+        displayMessage('Неправильно! Попробуй снова...', 'red');
     }
 }
 
@@ -123,10 +118,13 @@ function stopTimer() {
     clearInterval(timerInterval);
 }
 
+
 /**
- * Сбрасывает игру до начального состояния.
+ * Запускает игру.
  */
-function resetGame() {
+function startGame() {
+    if (gameActive) return; 
+    
     stopTimer();
     currentNumber = 1;
     currentNumberSpan.textContent = currentNumber;
@@ -142,20 +140,8 @@ function resetGame() {
 
     // Перезагрузка сетки с новыми случайными числами
     generateGrid();
-    
-    startButton.textContent = 'Начать игру';
-    gridElement.classList.remove('active');
     hideMessage();
     confettiContainer.innerHTML = ''; // Очищаем звездочки
-}
-
-/**
- * Запускает игру.
- */
-function startGame() {
-    if (gameActive) return; 
-    
-    resetGame(); 
     
     gameActive = true;
     gridElement.classList.add('active');
