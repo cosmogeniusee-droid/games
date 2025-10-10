@@ -36,45 +36,6 @@ p {
     font-size: 1.1em;
 }
 
-#size-selection {
-    margin-bottom: 25px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-}
-
-.size-btn {
-    padding: 8px 15px;
-    cursor: pointer;
-    border: none; /* Без стандартной рамки */
-    background-color: #FFD700; /* Желтый */
-    color: #8B4513; /* Коричневый текст */
-    border-radius: 15px; /* Скругленные кнопки */
-    font-weight: bold;
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
-    transition: background-color 0.2s, transform 0.1s;
-}
-
-.size-btn:hover:not(:disabled) {
-    background-color: #FFC107;
-    transform: translateY(-2px);
-}
-
-.size-btn.active {
-    background-color: #FF69B4; /* Активная кнопка - розовый */
-    color: white;
-    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-    transform: translateY(-1px);
-}
-
-.size-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    box-shadow: none;
-}
-
-
 #schulte-grid {
     display: grid;
     width: 300px; /* Фиксированный размер для всех сеток */

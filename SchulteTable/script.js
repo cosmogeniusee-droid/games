@@ -1,6 +1,6 @@
 // Переменные для состояния игры
-let currentGridSize = 5; // Изначально 5x5
 let currentNumber = 1;
+let currentGridSize = 3;
 let gameActive = false;
 let timerInterval;
 let startTime;
@@ -12,13 +12,11 @@ const currentNumberSpan = document.getElementById('current-number');
 const totalNumbersSpan = document.getElementById('total-numbers');
 const timerSpan = document.getElementById('timer');
 const confettiContainer = document.getElementById('confetti-container');
-const sizeButtons = document.querySelectorAll('.size-btn');
-
 // Звуковые эффекты (Используются общедоступные ссылки)
 // Звук для правильного нажатия (Correct / Beep)
-const correctSound = new Audio('https://onlinetestcase.com/wp-content/uploads/2023/06/100-KB-MP3.mp3'); 
-// Звук для неправильного нажатия (Incorrect / Buzz)
-const incorrectSound = new Audio('https://s3.eu-central-1.amazonaws.com/s.siteapi.org/a4/0c19a0a049e39e2.mp3');
+const correctSound = new Audio('correct.mp3');
+const incorrectSound = new Audio('incorrect.mp3');
+const finishSound = new Audio('finish.mp3');
 
 /**
  * Перемешивает массив (алгоритм Фишера-Йейтса).
@@ -78,7 +76,9 @@ function handleCellClick(event) {
         currentNumber++;
         currentNumberSpan.textContent = currentNumber;
 
-        if (currentNumber > TOTAL_NUMBERS) {
+        if (currentNumber > TOTAL_NUMBERS) {            
+            finishSound.currentTime = 0; // Сбрасываем звук, чтобы он проигрывался сразу
+            finishSound.play().catch(e => console.error("Ошибка проигрывания звука: ", e));
             // Победа!
             stopTimer();
             gameActive = false;
@@ -86,7 +86,6 @@ function handleCellClick(event) {
             displayMessage(`Победа! Ваше время: ${timerSpan.textContent} с`, 'green');
             triggerConfetti();
             startButton.textContent = 'Сыграть снова';
-            enableSizeButtons(true);
         }
     } else {
         // Неправильное нажатие
@@ -104,7 +103,6 @@ function handleCellClick(event) {
         // Сброс через 3 секунды
         setTimeout(() => {
             resetGame();
-            enableSizeButtons(true);
         }, 3000);
     }
 }
@@ -165,37 +163,7 @@ function startGame() {
     gridElement.classList.add('active');
     startButton.textContent = 'В процессе...';
     startTimer();
-    enableSizeButtons(false); // Блокируем изменение размера во время игры
 }
-
-/**
- * Обработчик для кнопок выбора размера.
- */
-function handleSizeChange(event) {
-    if (gameActive) return;
-
-    const newSize = parseInt(event.target.dataset.size, 10);
-    if (newSize === currentGridSize) return;
-
-    currentGridSize = newSize;
-
-    // Обновляем активную кнопку
-    sizeButtons.forEach(btn => btn.classList.remove('active'));
-    event.target.classList.add('active');
-
-    resetGame(); // Перезапускаем игру с новой сеткой
-}
-
-/**
- * Блокирует/разблокирует кнопки выбора размера.
- */
-function enableSizeButtons(enable) {
-    sizeButtons.forEach(btn => {
-        btn.disabled = !enable;
-        btn.style.opacity = enable ? '1.0' : '0.5';
-    });
-}
-
 
 function displayMessage(text, color) {
     const messageElement = document.getElementById('message');
@@ -222,12 +190,4 @@ function triggerConfetti() {
     }
 }
 
-
-// Инициализация: Добавление слушателей событий
 startButton.addEventListener('click', startGame);
-sizeButtons.forEach(button => {
-    button.addEventListener('click', handleSizeChange);
-});
-
-// Первоначальная генерация сетки (5x5)
-generateGrid();
