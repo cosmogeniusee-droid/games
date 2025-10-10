@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Квадрат Шульте</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Open+Sans:wght@400;700&display=swap');
+
+body {
+    font-family: 'Open Sans', sans-serif; /* Более читаемый шрифт */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    background: linear-gradient(135deg, #87CEEB 0%, #ADD8E6 100%); /* Голубой градиент */
+    overflow: hidden; /* Чтобы конфетти не создавало полосы прокрутки */
+}
+
+.container {
+    background-color: #ffffff; /* Чистый белый фон */
+    padding: 30px;
+    border-radius: 25px; /* Сильнее скругленные углы */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); /* Более выраженная тень */
+    text-align: center;
+    width: 380px; /* Немного шире для комфорта */
+    position: relative;
+    z-index: 1;
+    border: 3px solid #FFD700; /* Золотая рамка */
+}
+
+h1 {
+    font-family: 'Fredoka One', cursive; /* Игривый детский шрифт */
+    color: #FF69B4; /* Розовый */
+    margin-bottom: 15px;
+    font-size: 2.8em;
+    text-shadow: 2px 2px #FFD700; /* Желтая тень */
+}
+
+p {
+    color: #4CAF50; /* Зеленый текст */
+    font-size: 1.1em;
+}
+
+#size-selection {
+    margin-bottom: 25px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+.size-btn {
+    padding: 8px 15px;
+    cursor: pointer;
+    border: none; /* Без стандартной рамки */
+    background-color: #FFD700; /* Желтый */
+    color: #8B4513; /* Коричневый текст */
+    border-radius: 15px; /* Скругленные кнопки */
+    font-weight: bold;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.size-btn:hover:not(:disabled) {
+    background-color: #FFC107;
+    transform: translateY(-2px);
+}
+
+.size-btn.active {
+    background-color: #FF69B4; /* Активная кнопка - розовый */
+    color: white;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+    transform: translateY(-1px);
+}
+
+.size-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+
+#schulte-grid {
+    display: grid;
+    width: 300px; /* Фиксированный размер для всех сеток */
+    height: 300px;
+    margin: 20px auto;
+    border: 4px dashed #9370DB; /* Фиолетовая пунктирная рамка */
+    border-radius: 15px; /* Скругленные углы сетки */
+    overflow: hidden; /* Для скругления углов ячеек */
+    pointer-events: none; 
+    opacity: 0.7; /* Немного прозрачности, когда неактивна */
+    transition: opacity 0.3s;
+    background-color: #FFFAF0; /* Светлый фон сетки */
+}
+
+/* Динамические классы для разных размеров */
+.grid-3x3 { grid-template-columns: repeat(3, 1fr); font-size: 2.2em; }
+.grid-4x4 { grid-template-columns: repeat(4, 1fr); font-size: 1.8em; }
+.grid-5x5 { grid-template-columns: repeat(5, 1fr); font-size: 1.5em; }
+.grid-6x6 { grid-template-columns: repeat(6, 1fr); font-size: 1.2em; }
+
+
+#schulte-grid.active {
+    pointer-events: all;
+    opacity: 1;
+}
+
+.cell {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    border: 1px solid #E0FFFF; /* Светлая тонкая рамка */
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.15s, transform 0.05s, box-shadow 0.15s;
+    color: #483D8B; /* Темно-синий текст */
+    background-color: #f8f8f8;
+}
+
+.cell:hover:not(.correct):not(.incorrect) {
+    background-color: #FFE4E1; /* Светло-розовый при наведении */
+    transform: scale(1.05); /* Легкий эффект увеличения */
+    box-shadow: 0 0 8px rgba(255, 105, 180, 0.5); /* Розовая тень */
+}
+
+/* Стили для обратной связи */
+.correct {
+    background-color: #90EE90; /* Светло-зеленый */
+    color: white;
+    box-shadow: 0 0 10px rgba(144, 238, 144, 0.8);
+    transform: scale(1.1); /* Выделение */
+}
+
+.incorrect {
+    background-color: #FFA07A; /* Светло-красный (лососевый) */
+    color: white;
+    animation: shake 0.5s;
+    box-shadow: 0 0 10px rgba(255, 160, 122, 0.8);
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-8px) rotate(-2deg); }
+    40%, 80% { transform: translateX(8px) rotate(2deg); }
+}
+
+/* Стили для кнопок и информации */
+#start-button {
+    padding: 12px 25px;
+    font-size: 1.3em;
+    cursor: pointer;
+    background-color: #00BFFF; /* Ярко-голубой */
+    color: white;
+    border: none;
+    border-radius: 20px; /* Сильно скругленная кнопка */
+    margin-top: 20px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.2s, transform 0.1s;
+    font-family: 'Fredoka One', cursive;
+}
+
+#start-button:hover:not(:disabled) {
+    background-color: #1E90FF; /* Темнее при наведении */
+    transform: translateY(-3px);
+}
+
+#start-button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+#game-info {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+    font-size: 1.2em;
+    color: #8B4513; /* Коричневый для информации */
+    font-weight: bold;
+}
+
+#current-number, #timer, #total-numbers {
+    color: #FF69B4; /* Розовые акценты */
+}
+
+
+#message {
+    margin-top: 20px;
+    font-weight: bold;
+    font-size: 1.2em;
+}
+.hidden {
+    display: none;
+}
+
+/* Анимация звездочек (конфетти) */
+#confetti-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1000;
+}
+
+.confetti {
+    position: absolute;
+    width: 15px; /* Чуть крупнее */
+    height: 15px;
+    background-color: var(--confetti-color, #ffd700); /* Золотой по умолчанию */
+    border-radius: 50%;
+    opacity: 0;
+    animation: confetti-fall 3s linear forwards;
+    transform: rotate(var(--initial-rotation, 0deg));
+}
+
+/* Добавляем случайные цвета для конфетти */
+.confetti:nth-child(3n) { --confetti-color: #FF69B4; } /* Розовый */
+.confetti:nth-child(3n+1) { --confetti-color: #90EE90; } /* Светло-зеленый */
+.confetti:nth-child(3n+2) { --confetti-color: #87CEEB; } /* Светло-голубой */
+
+
+@keyframes confetti-fall {
+    0% { 
+        transform: translate(var(--initial-x), -100px) rotate(0deg); 
+        opacity: 1; 
+    }
+    100% { 
+        transform: translate(var(--end-x), 100vh) rotate(720deg); 
+        opacity: 0; 
+    }
+}
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Квадрат Шульте</h1>
+        
+        <div id="size-selection">
+            <strong>Размер:</strong>
+            <button class="size-btn" data-size="3">3x3</button>
+            <button class="size-btn" data-size="4">4x4</button>
+            <button class="size-btn active" data-size="5">5x5</button>
+            <button class="size-btn" data-size="6">6x6</button>
+        </div>
+
+        <p>Найдите числа по порядку, от 1 до <span id="total-numbers">25</span>.</p>
+        
+        <div id="game-info">
+            <p><strong>Текущее число:</strong> <span id="current-number">1</span></p>
+            <p><strong>Время:</strong> <span id="timer">0.00</span> с</p>
+        </div>
+        
+        <div id="schulte-grid"> 
+            </div>
+        
+        <button id="start-button">Начать игру</button>
+        <div id="message" class="hidden"></div>
+    </div>
+
+    <div id="confetti-container"></div>
+
+    <script>
+        // Переменные для состояния игры
+let currentGridSize = 5; // Изначально 5x5
+let currentNumber = 1;
+let gameActive = false;
+let timerInterval;
+let startTime;
+
+// DOM-элементы
+const gridElement = document.getElementById('schulte-grid');
+const startButton = document.getElementById('start-button');
+const currentNumberSpan = document.getElementById('current-number');
+const totalNumbersSpan = document.getElementById('total-numbers');
+const timerSpan = document.getElementById('timer');
+const confettiContainer = document.getElementById('confetti-container');
+const sizeButtons = document.querySelectorAll('.size-btn');
+
+// Звуковые эффекты (Используются общедоступные ссылки)
+// Звук для правильного нажатия (Correct / Beep)
+const correctSound = new Audio('https://onlinetestcase.com/wp-content/uploads/2023/06/100-KB-MP3.mp3'); 
+// Звук для неправильного нажатия (Incorrect / Buzz)
+const incorrectSound = new Audio('https://s3.eu-central-1.amazonaws.com/s.siteapi.org/a4/0c19a0a049e39e2.mp3');
+
+/**
+ * Перемешивает массив (алгоритм Фишера-Йейтса).
+ */
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
+/**
+ * Генерирует и отображает сетку Шульте.
+ */
+function generateGrid() {
+    const TOTAL_NUMBERS = currentGridSize * currentGridSize;
+    
+    // Обновление класса сетки и информации
+    gridElement.className = ''; // Сброс классов
+    gridElement.classList.add(`grid-${currentGridSize}x${currentGridSize}`);
+    totalNumbersSpan.textContent = TOTAL_NUMBERS;
+    
+    // Создаем массив чисел
+    const numbers = Array.from({ length: TOTAL_NUMBERS }, (_, i) => i + 1);
+    const shuffledNumbers = shuffleArray(numbers);
+
+    gridElement.innerHTML = ''; // Очищаем сетку
+    
+    shuffledNumbers.forEach(number => {
+        const cell = document.createElement('div');
+        cell.classList.add('cell');
+        cell.textContent = number;
+        cell.dataset.number = number; 
+        cell.addEventListener('click', handleCellClick);
+        gridElement.appendChild(cell);
+    });
+}
+
+/**
+ * Обработчик клика по ячейке.
+ */
+function handleCellClick(event) {
+    if (!gameActive) return;
+
+    const clickedNumber = parseInt(event.target.dataset.number, 10);
+    const cell = event.target;
+    const TOTAL_NUMBERS = currentGridSize * currentGridSize;
+
+    if (clickedNumber === currentNumber) {
+        // Правильное нажатие
+        correctSound.currentTime = 0; // Сбрасываем звук, чтобы он проигрывался сразу
+        correctSound.play().catch(e => console.error("Ошибка проигрывания звука: ", e));
+        
+        cell.classList.add('correct');
+        cell.removeEventListener('click', handleCellClick); 
+        currentNumber++;
+        currentNumberSpan.textContent = currentNumber;
+
+        if (currentNumber > TOTAL_NUMBERS) {
+            // Победа!
+            stopTimer();
+            gameActive = false;
+            gridElement.classList.remove('active');
+            displayMessage(`Победа! Ваше время: ${timerSpan.textContent} с`, 'green');
+            triggerConfetti();
+            startButton.textContent = 'Сыграть снова';
+            enableSizeButtons(true);
+        }
+    } else {
+        // Неправильное нажатие
+        incorrectSound.currentTime = 0;
+        incorrectSound.play().catch(e => console.error("Ошибка проигрывания звука: ", e));
+        cell.classList.add('incorrect');
+        
+        // Блокируем игру
+        gameActive = false;
+        gridElement.classList.remove('active');
+        stopTimer();
+        
+        displayMessage('Неправильно! Игра начнется заново через 3 секунды...', 'red');
+
+        // Сброс через 3 секунды
+        setTimeout(() => {
+            resetGame();
+            enableSizeButtons(true);
+        }, 3000);
+    }
+}
+
+/**
+ * Запускает таймер.
+ */
+function startTimer() {
+    startTime = Date.now();
+    timerInterval = setInterval(() => {
+        const elapsedTime = (Date.now() - startTime) / 1000;
+        timerSpan.textContent = elapsedTime.toFixed(2);
+    }, 100);
+}
+
+/**
+ * Останавливает таймер.
+ */
+function stopTimer() {
+    clearInterval(timerInterval);
+}
+
+/**
+ * Сбрасывает игру до начального состояния.
+ */
+function resetGame() {
+    stopTimer();
+    currentNumber = 1;
+    currentNumberSpan.textContent = currentNumber;
+    timerSpan.textContent = '0.00';
+    
+    // Удаляем все классы обратной связи и анимацию
+    const allCells = document.querySelectorAll('.cell');
+    allCells.forEach(cell => {
+        cell.classList.remove('correct', 'incorrect');
+        // Возвращаем обработчик клика
+        cell.addEventListener('click', handleCellClick);
+    });
+
+    // Перезагрузка сетки с новыми случайными числами
+    generateGrid();
+    
+    startButton.textContent = 'Начать игру';
+    gridElement.classList.remove('active');
+    hideMessage();
+    confettiContainer.innerHTML = ''; // Очищаем звездочки
+}
+
+/**
+ * Запускает игру.
+ */
+function startGame() {
+    if (gameActive) return; 
+    
+    resetGame(); 
+    
+    gameActive = true;
+    gridElement.classList.add('active');
+    startButton.textContent = 'В процессе...';
+    startTimer();
+    enableSizeButtons(false); // Блокируем изменение размера во время игры
+}
+
+/**
+ * Обработчик для кнопок выбора размера.
+ */
+function handleSizeChange(event) {
+    if (gameActive) return;
+
+    const newSize = parseInt(event.target.dataset.size, 10);
+    if (newSize === currentGridSize) return;
+
+    currentGridSize = newSize;
+
+    // Обновляем активную кнопку
+    sizeButtons.forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+
+    resetGame(); // Перезапускаем игру с новой сеткой
+}
+
+/**
+ * Блокирует/разблокирует кнопки выбора размера.
+ */
+function enableSizeButtons(enable) {
+    sizeButtons.forEach(btn => {
+        btn.disabled = !enable;
+        btn.style.opacity = enable ? '1.0' : '0.5';
+    });
+}
+
+
+function displayMessage(text, color) {
+    const messageElement = document.getElementById('message');
+    messageElement.textContent = text;
+    messageElement.style.color = color;
+    messageElement.classList.remove('hidden');
+}
+
+function hideMessage() {
+    document.getElementById('message').classList.add('hidden');
+}
+
+function triggerConfetti() {
+    for (let i = 0; i < 50; i++) {
+        const confetti = document.createElement('div');
+        confetti.classList.add('confetti');
+        confetti.style.left = `${Math.random() * 100}%`; 
+        confetti.style.setProperty('--end-x', `${(Math.random() - 0.5) * 500}px`);
+        confettiContainer.appendChild(confetti);
+
+        confetti.addEventListener('animationend', () => {
+            confetti.remove();
+        });
+    }
+}
+
+
+// Инициализация: Добавление слушателей событий
+startButton.addEventListener('click', startGame);
+sizeButtons.forEach(button => {
+    button.addEventListener('click', handleSizeChange);
+});
+
+// Первоначальная генерация сетки (5x5)
+generateGrid();
+    </script>
+</body>
+</html>
