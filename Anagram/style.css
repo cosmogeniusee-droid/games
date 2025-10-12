@@ -1,0 +1,171 @@
+/* Более "детский" и яркий стиль */
+body {
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+    background: linear-gradient(135deg, #f0e68c, #add8e6); /* Мягкий градиент */
+    color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 20px;
+    margin: 0;
+    min-height: 100vh;
+}
+
+#container {
+    background-color: #ffffff;
+    padding: 30px;
+    border-radius: 20px; /* Скругленные углы */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    max-width: 900px; /* Фиксированная максимальная ширина контейнера */
+    width: 95%; 
+}
+
+/* --- Верхняя панель и Целевое Слово --- */
+#top-bar {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 3px solid #ffcc00;
+    padding-bottom: 10px;
+}
+
+#target-word-display {
+    font-size: 48px; /* Очень крупный размер */
+    font-weight: bold;
+    letter-spacing: 15px;
+    padding: 10px 20px;
+    background-color: #ff69b4; /* Яркий цвет */
+    color: white;
+    border-radius: 15px;
+    box-shadow: 0 4px #e05e9e;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    flex-grow: 1;
+    margin: 0 20px; 
+}
+
+#timer {
+    font-size: 36px;
+    color: #3cb371; /* Веселый зеленый */
+    font-weight: bold;
+    white-space: nowrap; 
+}
+
+
+/* --- Кнопка и Сообщение (ИСПРАВЛЕНИЕ ПРЫЖКА) --- */
+#start-button {
+    padding: 15px 30px;
+    font-size: 20px;
+    background-color: #4169e1; /* Яркий синий */
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 5px #3a5ed1;
+    transition: background-color 0.2s, transform 0.2s;
+    margin-bottom: 20px;
+}
+
+#start-button:active {
+    box-shadow: 0 2px #3a5ed1;
+    transform: translateY(3px);
+}
+
+#message {
+    font-size: 24px;
+    font-weight: bold;
+    color: #ff4500;
+    margin-bottom: 20px;
+    /* ИСПРАВЛЕНИЕ: Занимает место, даже когда "скрыто" */
+    min-height: 30px; 
+    visibility: hidden; 
+}
+
+/* Переопределяем .hidden для управления видимостью без изменения места */
+.hidden {
+    visibility: hidden !important; 
+}
+
+/* Когда сообщение видимо, делаем его видимым */
+#message:not(.hidden) {
+    visibility: visible;
+}
+
+
+/* --- Игровая Зона --- */
+#game-area {
+    display: flex;
+    justify-content: space-between; 
+    align-items: center;
+    width: 100%;
+    min-width: 800px; 
+    box-sizing: border-box; 
+}
+
+#left-column, #right-column {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    height: 400px; /* Высота canvas */
+    padding: 10px;
+    background-color: #ffe4e1; 
+    border-radius: 10px;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 120px; 
+    flex-shrink: 0; 
+}
+
+#left-column > div, #right-column > div {
+    min-height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 5px 0;
+    font-size: 24px;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s, box-shadow 0.2s;
+    user-select: none;
+}
+
+.number-cell {
+    background-color: #e0ffff;
+    border: 3px solid #00ced1;
+}
+
+.letter-cell {
+    background-color: #f0f8ff;
+    border: 3px solid #4682b4;
+}
+
+.number-cell.selected, .letter-cell:hover:not(.matched) {
+    background-color: #ffb6c1; 
+    box-shadow: 0 0 10px #ff69b4;
+}
+
+.number-cell.matched, .letter-cell.matched {
+    background-color: #c0c0c0 !important;
+    color: #808080;
+    cursor: default;
+    box-shadow: none;
+    border: 3px solid #a9a9a9;
+}
+
+/* --- Canvas --- */
+#maze-container {
+    flex-grow: 1; 
+    margin: 0 20px;
+    border: 5px solid #ffa07a;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    max-width: 600px; 
+    min-width: 600px; 
+}
+
+#maze-canvas {
+    display: block;
+    background-color: #f8f8ff; 
+}

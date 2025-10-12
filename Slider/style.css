@@ -1,0 +1,114 @@
+html, body {    
+    background-color: #f7e1ff;
+}
+body {
+    font-family: 'Arial', sans-serif;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+/* НОВЫЙ СТИЛЬ ДЛЯ КНОПКИ */
+#fullscreen-btn {
+    padding: 10px 20px;
+    font-size: 1.2em;
+    background-color: #3cb371; /* Зеленый */
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-top: 15px;
+    transition: background-color 0.3s;
+    box-shadow: 0 4px #2e8b57;
+}
+
+#fullscreen-btn:hover {
+    background-color: #45b7d1; /* Бирюзовый при наведении */
+}
+
+h1 {
+    color: #ff69b4;
+    font-size: 2.5em;
+    text-shadow: 2px 2px #fff;
+}
+
+#game-container {
+    width: 90%;
+    max-width: 900px;
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border: 5px solid #a8dadc;
+    display: flex;
+    flex-direction: column;
+    /*align-items: center; */
+}
+
+.line-wrapper {
+    margin-bottom: 25px;
+    padding: 5px 10px; 
+    border: 1px dashed #ccc;
+    border-radius: 10px;
+    box-sizing: content-box;
+}
+
+.word-line {
+    /* ИЗМЕНЕНИЕ: Уменьшаем размер шрифта, чтобы избежать переноса длинных строк */
+    font-size: 3em; 
+    line-height: 1.5;
+    white-space: pre-wrap;
+    text-align: left;
+    margin: 0;
+    padding-left:10px;
+    display: inline-block;
+}
+
+.letter-span {
+    transition: color 0.1s;
+    display: inline-block;
+    /* Убеждаемся, что нет горизонтальных отступов */
+    padding: 0; 
+    font-weight: bold;
+    color: #333;
+}
+
+.slider {
+    width: 100%; 
+    -webkit-appearance: none;
+    height: 15px;
+    background: #e0f2f1;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 5px;
+    padding: 0;
+    color: #1dbd45;
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    background: #45b7d1;
+    cursor: pointer;
+    border: 3px solid #fff;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+.slider::-moz-range-thumb {
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    background: #45b7d1;
+    cursor: pointer;
+    border: 3px solid #fff;
+}

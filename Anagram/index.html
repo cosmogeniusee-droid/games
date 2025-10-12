@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Лабиринт Слов</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="container">
+        <div id="top-bar">
+            <div id="timer">00:00:000</div>
+            <div id="target-word-display">???</div>
+        </div>
+
+        <button id="start-button">Начать Игру</button>
+
+        <div id="message" class="hidden"></div> 
+
+        <div id="game-area" class="hidden">
+            <div id="left-column"></div>
+            <div id="maze-container">
+                <canvas id="maze-canvas" width="600" height="400"></canvas>
+            </div>
+            <div id="right-column"></div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
