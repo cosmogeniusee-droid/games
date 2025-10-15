@@ -32,7 +32,7 @@ if (urlBg) {
     // Декодируем URL на случай, если в нем есть спецсимволы
     const backgroundUrl = decodeURIComponent(urlBg);
     gameBody.style.backgroundImage = `url('${backgroundUrl}')`;
-    gameBody.style.backgroundSize = 'cover';
+    //gameBody.style.backgroundSize = 'cover';
     gameBody.style.backgroundPosition = 'center';
     gameBody.style.backgroundRepeat = 'no-repeat';
 } 
