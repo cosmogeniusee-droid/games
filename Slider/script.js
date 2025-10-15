@@ -1,4 +1,4 @@
-// Данные для игры: слова по слогам или предложения
+// Данные для игры по умолчанию (если URL-параметры не заданы)
 const gameData = {
     easy: [
         "СО-БА-КА", 
@@ -13,10 +13,37 @@ const gameData = {
     ]
 };
 
-// 1. ПОЛУЧЕНИЕ ТЕКСТА ИЗ URL-ПАРАМЕТРА
+// --- 1. ПОЛУЧЕНИЕ ПАРАМЕТРОВ ИЗ URL ---
 const urlParams = new URLSearchParams(window.location.search);
 const urlText = urlParams.get('text');
+const urlColor = urlParams.get('color');
+const urlBgColor = urlParams.get('bgcolor');
+const urlBg = urlParams.get('bg');
+const urlSize = urlParams.get('size');
 
+// --- 2. ГЛОБАЛЬНЫЕ НАСТРОЙКИ ИГРЫ ---
+const highlightColor = urlColor ? `#${urlColor}` : '#1dbd45'; // Цвет для выделения
+const fontSize = urlSize ? `${urlSize}em` : '3em'; // Размер шрифта
+const gameBody = document.getElementById('game-body');
+const fullscreenButton = document.getElementById('fullscreen-btn');
+
+// Применяем фон, если он задан в URL
+if (urlBg) {
+    // Декодируем URL на случай, если в нем есть спецсимволы
+    const backgroundUrl = decodeURIComponent(urlBg);
+    gameBody.style.backgroundImage = `url('${backgroundUrl}')`;
+    gameBody.style.backgroundSize = 'cover';
+    gameBody.style.backgroundPosition = 'center';
+    gameBody.style.backgroundRepeat = 'no-repeat';
+} 
+if (urlBgColor) {
+    // Если задан цвет фона, применяем его
+    gameBody.style.backgroundColor = `#${urlBgColor}`;
+} else {
+    gameBody.style.backgroundColor = '#f7e1ff'; // Цвет по умолчанию
+}
+
+// --- 3. ОСНОВНАЯ ФУНКЦИЯ ЗАГРУЗКИ ИГРЫ ---
 function loadGame(){
     
 let currentText;
@@ -34,8 +61,6 @@ if (urlText) {
     currentText = texts[Math.floor(Math.random() * texts.length)];
 }
 
-// *** ОСНОВНАЯ ЛОГИКА ОТОБРАЖЕНИЯ (ОСТАВЛЕНА БЕЗ ИЗМЕНЕНИЙ) ***
-
 const container = document.getElementById('game-container');
 container.style.maxWidth = '';
 const lines = currentText.split('|');
@@ -46,6 +71,7 @@ lines.forEach((lineText, lineIndex) => {
     
     const lineDisplay = document.createElement('div');
     lineDisplay.classList.add('word-line');
+    lineDisplay.style.fontSize = fontSize; // Применяем размер шрифта
 
     // Заменяем пробелы и дефисы на неразрывные символы
     const normalizedLine = lineText.replace(/ /g, '\u00A0').replace(/-/g, '\u2011'); 
@@ -79,7 +105,7 @@ lines.forEach((lineText, lineIndex) => {
     }
     console.log('Line '+ lineIndex , lineDisplay.offsetWidth)
     slider.addEventListener('input', (event) => {
-        updateColors(lineDisplay, parseInt(event.target.value));
+        updateColors(lineDisplay, parseInt(event.target.value), highlightColor);
     });
 
     updateColors(lineDisplay, 0);
@@ -88,9 +114,7 @@ lines.forEach((lineText, lineIndex) => {
 container.style.maxWidth = maxLen+ 'px'; 
 }
 
-const fullscreenButton = document.getElementById('fullscreen-btn');
-const gameBody = document.getElementById('game-body');
-
+// --- 4. ОБРАБОТЧИКИ СОБЫТИЙ ---
 fullscreenButton.addEventListener('click', () => {
     if (!document.fullscreenElement) {
         // Запрос перехода в полноэкранный режим
@@ -103,19 +127,21 @@ fullscreenButton.addEventListener('click', () => {
     }
 });
 
-function updateColors(lineElement, sliderValue) {
+/**
+ * Обновляет цвет букв в строке в зависимости от положения слайдера.
+ * @param {HTMLElement} lineElement - Элемент div.word-line, содержащий спаны с буквами.
+ * @param {number} sliderValue - Текущее значение слайдера.
+ * @param {string} color - Цвет для выделенных букв.
+ */
+function updateColors(lineElement, sliderValue, color = '#1dbd45') {
     const spans = lineElement.querySelectorAll('.letter-span');
     spans.forEach((span, charIndex) => {
         if (charIndex < sliderValue) {
-            span.style.color = '#1dbd45';
+            span.style.color = color;
         } else {
             span.style.color = '#333'; 
         }
     });
 }
 
-
-
-window.addEventListener('load', function () {
-    loadGame();
-})
+window.addEventListener('load', loadGame);
