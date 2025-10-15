@@ -1,0 +1,54 @@
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    /* Яркий, детский фон */
+    background-color: #fce4ec; /* Светло-розовый */
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+    color: #3f51b5; /* Голубой */
+}
+
+h1 {
+    color: #ff5722; /* Оранжевый */
+    margin-bottom: 50px;
+    font-size: 2.5em;
+    text-shadow: 2px 2px #fff;
+}
+
+#circle-container {
+    position: relative;
+    /* Радиус круга, по которому будут двигаться буквы */
+    width: 460px;
+    height: 460px;
+}
+
+.letter-block {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #fff;
+    /* Скругленные углы и яркие цвета для детской стилистики */
+    border-radius: 50%;
+    background-color: #4caf50; /* Зеленый */
+    box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3);
+    /* Центрируем блок, чтобы его центр был на орбите */
+    /* Эти свойства будут переопределены JS, но важны для центрирования */
+    margin-left: 0; 
+    margin-top: 0;
+    
+    /* Убираем transition, который нам тут не нужен */
+    transition: none; 
+}
+
+/* Цвета для разнообразия */
+.letter-block:nth-child(3n + 1) { background-color: #9c27b0; } /* Фиолетовый */
+.letter-block:nth-child(3n + 2) { background-color: #ff9800; } /* Желто-оранжевый */
+.letter-block:nth-child(3n + 3) { background-color: #03a9f4; } /* Небесно-голубой */
