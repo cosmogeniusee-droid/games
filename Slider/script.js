@@ -17,6 +17,8 @@ const gameData = {
 const urlParams = new URLSearchParams(window.location.search);
 const urlText = urlParams.get('text');
 
+function loadGame(){
+    
 let currentText;
 
 if (urlText) {
@@ -84,28 +86,6 @@ lines.forEach((lineText, lineIndex) => {
 });
 
 container.style.maxWidth = maxLen+ 'px'; 
-
-/**
- * Обновляет цвет букв в зависимости от положения ползунка.
- */
-function updateColors(lineElement, sliderValue) {
-    const getColor = (index) => {
-        return '#1dbd45';
-        const colors = [
-            '#ff0000', '#ff8c00', '#ffd700', 
-            '#3cb371', '#4169e1', '#8a2be2'
-        ];
-        return colors[index % colors.length];
-    };
-
-    const spans = lineElement.querySelectorAll('.letter-span');
-    spans.forEach((span, charIndex) => {
-        if (charIndex < sliderValue) {
-            span.style.color = getColor(charIndex);
-        } else {
-            span.style.color = '#333'; 
-        }
-    });
 }
 
 const fullscreenButton = document.getElementById('fullscreen-btn');
@@ -122,3 +102,20 @@ fullscreenButton.addEventListener('click', () => {
         document.exitFullscreen();
     }
 });
+
+function updateColors(lineElement, sliderValue) {
+    const spans = lineElement.querySelectorAll('.letter-span');
+    spans.forEach((span, charIndex) => {
+        if (charIndex < sliderValue) {
+            span.style.color = '#1dbd45';
+        } else {
+            span.style.color = '#333'; 
+        }
+    });
+}
+
+
+
+window.addEventListener('load', function () {
+    loadGame();
+})

@@ -4,7 +4,6 @@
 * [Квадрат Шульте 6x6](/SchulteTable/6x6.html)
 * [Квадрат Шульте 10x10](/SchulteTable/10x10.html)
 
-
 * [Анаграмма](/Anagram/index.html)
 
 * [Ползунок](/Slider/index.html)
