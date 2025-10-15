@@ -7,7 +7,7 @@
 * [Анаграмма](/Anagram/index.html)
 
 * [Ползунок](/Slider/index.html)
-* [Ползунок (Создание ссылки)](/Slider/config.html)
+* [Ползунок(Создание ссылки)](/Slider/config.html)
 
 * [Вращающийся текст](/TextRotator/index.html)
 * [Вращающийся текст (Создание ссылки)](/TextRotator/config.html)
