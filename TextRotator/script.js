@@ -1,48 +1,69 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Новое предложение
-    const phrase = "Прочитай меня если сможешь ";
-    const container = document.getElementById('circle-container');
-    
-    // Удаляем все пробелы, так как они не нужны для движения по кругу
-    const letters = phrase.split('');
+    // --- 1. Получение параметров из URL и установка значений по умолчанию ---
+    const urlParams = new URLSearchParams(window.location.search);
 
-    // Параметры круга
-    const radius = 200; 
+    const phrase = urlParams.get('text') || "Прочитай меня если сможешь ";
+    const radius = parseInt(urlParams.get('radius'), 10) || 200;
+    const rotationSpeed = (parseInt(urlParams.get('speed'), 10) || 8) / 1000; // Делим для более плавной скорости
+    const fontSize = urlParams.get('size') ? `${urlParams.get('size')}px` : '24px';
+    const fontColor = urlParams.get('color') ? `#${urlParams.get('color')}` : '#333';
+    const bgColor = urlParams.get('bgcolor') ? `#${urlParams.get('bgcolor')}` : '#f0f8ff';
+    const bgImage = urlParams.get('bg');
+
+    const letterSize = Number(fontSize.replace('px', '')) + 20;
+    // --- 2. Настройка DOM элементов ---
+    const container = document.getElementById('circle-container');
+    container.style.width = `${radius * 2 + letterSize}px`;
+    container.style.height = `${radius * 2 + letterSize}px`;
+
+    // Применение фона
+    if (bgImage) {
+        document.body.style.backgroundImage = `url('${decodeURIComponent(bgImage)}')`;
+        document.body.style.backgroundSize = 'cover';
+        document.body.style.backgroundPosition = 'center';
+    } else {
+        document.body.style.backgroundColor = bgColor;
+    }
+
+    // --- 3. Создание букв ---
+    const letters = phrase.split('');
     const center = { x: radius, y: radius };
     const totalLetters = letters.length;
-    
-    // Скорость вращения в радианах за кадр. (Положительное = по часовой)
-    const rotationSpeed = 0.008; 
 
     let currentAngle = 0; // Начинаем с 0
     let letterElements = [];
 
-    // 2. Создание элементов
     letters.forEach((letter) => {
         const letterBlock = document.createElement('div');
         letterBlock.className = 'letter-block';
         letterBlock.textContent = letter;
+        // Применение стилей из параметров
+        letterBlock.style.fontSize = fontSize;
+        letterBlock.style.color = fontColor;
+
+        letterBlock.style.width = letterSize+ 'px';
+        letterBlock.style.height = letterSize + 'px';
+        letterBlock.style.lineHeight = fontSize
         container.appendChild(letterBlock);
         letterElements.push(letterBlock);
     });
-    
-    // 3. Анимация (вращение)
+
+    // --- 4. Анимация (вращение) ---
     function animateRotation() {
-        // Увеличиваем угол вращения по часовой стрелке
+        // Увеличиваем угол вращения
         currentAngle += rotationSpeed;
 
         letterElements.forEach((el, index) => {
             const angleStep = (2 * Math.PI) / totalLetters;
             // Угол для текущего элемента на круге
-            const angle = index * angleStep + currentAngle; 
-            
+            const angle = index * angleStep + currentAngle;
+
             // Новые позиции (x, y)
             const x = center.x + radius * Math.cos(angle);
             const y = center.y + radius * Math.sin(angle);
-            
-            // Перемещение и вращение блока
+
+            // Перемещение блока с учетом его центра
             el.style.transform = `
-                /* 1. Позиционируем центр блока по его орбите */
                 translate(${x}px, ${y}px)
             `;
         });
