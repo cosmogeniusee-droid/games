@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,15 +12,18 @@
             background-color: #f0f8ff;
             color: #333;
         }
+
         h1 {
             color: #1e90ff;
         }
+
         label {
             display: block;
             margin-top: 15px;
             margin-bottom: 5px;
             font-weight: bold;
         }
+
         #textInput {
             width: 100%;
             height: 100px;
@@ -28,8 +32,10 @@
             border: 2px solid #ccc;
             border-radius: 5px;
             font-size: 1em;
-            resize: vertical; /* Разрешить изменение размера только по вертикали */
+            resize: vertical;
+            /* Разрешить изменение размера только по вертикали */
         }
+
         .output-box {
             margin-top: 20px;
             padding: 15px;
@@ -38,30 +44,54 @@
             background-color: #fff;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
+
         #urlDisplay {
-            word-break: break-all; /* Обеспечивает перенос длинного URL */
+            word-break: break-all;
+            /* Обеспечивает перенос длинного URL */
             color: #555;
             font-family: monospace;
             background-color: #f7f7f7;
             padding: 5px;
             border-radius: 3px;
         }
+        #copyLink {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 10px 15px;
+            background-color: #32cd32;
+            /* Ярко-зеленый */
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+font-size: 1em;
+     border: none;
+        }
+
+        #copyLink:hover {
+            background-color: #228b22;
+        }
+
         #gameLink {
             display: inline-block;
             margin-top: 10px;
             padding: 10px 15px;
-            background-color: #32cd32; /* Ярко-зеленый */
+            background-color: #32cd32;
+            /* Ярко-зеленый */
             color: white;
             text-decoration: none;
             border-radius: 5px;
             font-weight: bold;
             transition: background-color 0.3s;
         }
+
         #gameLink:hover {
             background-color: #228b22;
         }
     </style>
 </head>
+
 <body>
 
     <h1>📝 Генератор ссылки для игры</h1>
@@ -72,14 +102,16 @@
     <div class="output-box">
         <label>Сгенерированная ссылка:</label>
         <div id="urlDisplay">index.html?text=</div>
-        
+
         <a id="gameLink" href="index.html?text=" target="_blank">🚀 Открыть игру с этим текстом</a>
+        <button type="button" id="copyLink">Скопировать ссылку</button>
     </div>
 
     <script>
         const textInput = document.getElementById('textInput');
         const urlDisplay = document.getElementById('urlDisplay');
         const gameLink = document.getElementById('gameLink');
+        const copyLink = document.getElementById('copyLink');
 
         function updateLink() {
             // 1. Получаем текст из поля ввода
@@ -100,12 +132,33 @@
             gameLink.href = fullUrl;
         }
 
+        function copyTextToClipboard(text) {
+            // Проверяем, поддерживает ли браузер Clipboard API
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                // Используем promise-based метод
+                return navigator.clipboard.writeText(text)
+                    .then(() => {
+                        console.log('Текст скопирован!');
+                    })
+                    .catch(err => {
+                        console.error('Ошибка при копировании: ', err);
+                    });
+            } else {
+                // В старых браузерах можно использовать запасной метод, например document.execCommand
+                console.warn('Браузер не поддерживает Clipboard API. Используется запасной метод.');
+                //fallbackCopyTextToClipboard(text);
+            }
+        }
+
         // Вызываем функцию при вводе текста
         textInput.addEventListener('input', updateLink);
-
+        copyLink.addEventListener("click", function(){
+            copyTextToClipboard(gameLink.href);
+        })
         // Инициализация при загрузке страницы (на случай, если в поле уже есть текст)
         updateLink();
     </script>
 
 </body>
+
 </html>
