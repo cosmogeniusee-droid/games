@@ -55,24 +55,47 @@ document.addEventListener('DOMContentLoaded', () => {
         letterElements.push(letterBlock);
     });
 
+    // Вычисляем правильное расстояние между буквами для спирали, чтобы соответствовать spiralTurns
+    let letterSpacing;
+    if (shape === 'spiral' && totalLetters > 1) {
+        const totalAngle = 2 * Math.PI * spiralTurns;
+        // Сумма обратных радиусов. Это нужно, чтобы вычислить, какой "вес" вносит каждый сегмент в общий угол.
+        let inverseRadiusSum = 0;
+        for (let i = 0; i < totalLetters - 1; i++) {
+            inverseRadiusSum += 1 / (radius + i * spiralGap);
+        }
+        // Рассчитываем расстояние, чтобы суммарный угол соответствовал заданным оборотам
+        letterSpacing = totalAngle / inverseRadiusSum;
+    } else {
+        letterSpacing = 30; // Значение по умолчанию, если не спираль
+    }
+
     // --- 4. Анимация (вращение) ---
     function animateRotation() {
         // Увеличиваем угол вращения
         currentAngle += rotationSpeed;
 
+        let accumulatedAngle = 0; // Накопленный угол для спирали
+
         letterElements.forEach((el, index) => {
-            const totalAngle = 2 * Math.PI * (shape === 'spiral' ? spiralTurns : 1);
-            const angleStep = totalAngle / totalLetters;
-            // Угол для текущего элемента на круге
-            const angle = index * angleStep + currentAngle;
-            
+            let angle;
             let currentRadius;
+
             if (shape === 'spiral') {
                 // Для спирали радиус увеличивается для каждой буквы
                 currentRadius = radius + index * spiralGap;
+                if (index > 0) {
+                    // Вычисляем угол так, чтобы сохранить постоянное расстояние между буквами
+                    const prevRadius = radius + (index - 1) * spiralGap;
+                    const angleIncrement = letterSpacing / prevRadius;
+                    accumulatedAngle += angleIncrement;
+                }
+                angle = accumulatedAngle + currentAngle;
             } else {
                 // Для круга радиус постоянный
                 currentRadius = radius;
+                const angleStep = (2 * Math.PI) / totalLetters;
+                angle = index * angleStep + currentAngle;
             }
 
             // Новые позиции (x, y)
