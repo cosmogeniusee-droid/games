@@ -22,6 +22,11 @@ h1 {
     position: relative;
 }
 
+/* Для режима спирали делаем контейнер больше */
+.spiral {
+    transform: scale(0.5); /* Масштабируем, чтобы помещалась на экране */
+}
+
 .letter-block {
     position: absolute;
     width: 60px;
@@ -43,6 +48,13 @@ h1 {
     
     /* Убираем transition, который нам тут не нужен */
     transition: none; 
+}
+
+/* Уменьшаем блоки в спирали для лучшего вида */
+.spiral .letter-block {
+    width: 40px;
+    height: 40px;
+    box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.2);
 }
 
 /* Цвета для разнообразия */

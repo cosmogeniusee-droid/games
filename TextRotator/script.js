@@ -3,18 +3,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
 
     const phrase = urlParams.get('text') || "Прочитай меня если сможешь ";
-    const radius = parseInt(urlParams.get('radius'), 10) || 200;
-    const rotationSpeed = (parseInt(urlParams.get('speed'), 10) || 8) / 1000; // Делим для более плавной скорости
+    const shape = urlParams.get('shape') || 'circle'; // 'circle' или 'spiral'
+    const radius = parseInt(urlParams.get('radius'), 10) || 200; // Начальный радиус
+    const rotationSpeed = (parseInt(urlParams.get('speed'), 10) || 5) / 1000; // Делим для более плавной скорости
     const fontSize = urlParams.get('size') ? `${urlParams.get('size')}px` : '24px';
     const fontColor = urlParams.get('color') ? `#${urlParams.get('color')}` : '#333';
     const bgColor = urlParams.get('bgcolor') ? `#${urlParams.get('bgcolor')}` : '#f0f8ff';
     const bgImage = urlParams.get('bg');
+    const spiralGap = parseInt(urlParams.get('gap'), 10) || 5; // Расстояние между витками спирали
+    const spiralTurns = parseFloat(urlParams.get('turns')) || 1.5; // Количество оборотов спирали
 
     const letterSize = Number(fontSize.replace('px', '')) + 20;
     // --- 2. Настройка DOM элементов ---
     const container = document.getElementById('circle-container');
-    container.style.width = `${radius * 2 + letterSize}px`;
-    container.style.height = `${radius * 2 + letterSize}px`;
+    if (shape === 'spiral') {
+        container.classList.add('spiral');
+    }
+    const letters = phrase.split('');
+    const totalLetters = letters.length;
+    const containerSize = shape === 'spiral' ? (radius + totalLetters * spiralGap) * 2 : radius * 2; 
+    const center = { x: containerSize / 2, y: containerSize / 2 };
+    container.style.width = `${containerSize + letterSize}px`;
+    container.style.height = `${containerSize + letterSize}px`;
 
     // Применение фона
     if (bgImage) {
@@ -25,10 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.style.backgroundColor = bgColor;
     }
 
-    // --- 3. Создание букв ---
-    const letters = phrase.split('');
-    const center = { x: radius, y: radius };
-    const totalLetters = letters.length;
+
 
     let currentAngle = 0; // Начинаем с 0
     let letterElements = [];
@@ -54,13 +61,23 @@ document.addEventListener('DOMContentLoaded', () => {
         currentAngle += rotationSpeed;
 
         letterElements.forEach((el, index) => {
-            const angleStep = (2 * Math.PI) / totalLetters;
+            const totalAngle = 2 * Math.PI * (shape === 'spiral' ? spiralTurns : 1);
+            const angleStep = totalAngle / totalLetters;
             // Угол для текущего элемента на круге
             const angle = index * angleStep + currentAngle;
+            
+            let currentRadius;
+            if (shape === 'spiral') {
+                // Для спирали радиус увеличивается для каждой буквы
+                currentRadius = radius + index * spiralGap;
+            } else {
+                // Для круга радиус постоянный
+                currentRadius = radius;
+            }
 
             // Новые позиции (x, y)
-            const x = center.x + radius * Math.cos(angle);
-            const y = center.y + radius * Math.sin(angle);
+            const x = center.x + currentRadius * Math.cos(angle);
+            const y = center.y + currentRadius * Math.sin(angle);
 
             // Перемещение блока с учетом его центра
             el.style.transform = `

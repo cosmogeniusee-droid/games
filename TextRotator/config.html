@@ -29,6 +29,21 @@
                             <input type="range" id="radiusInput" class="form-range" min="50" max="400" step="10" value="200">
                         </div>
                         <div class="mb-3">
+                            <label for="shapeInput" class="form-label">Форма:</label>
+                            <select id="shapeInput" class="form-select">
+                                <option value="circle" selected>Круг</option>
+                                <option value="spiral">Спираль</option>
+                            </select>
+                        </div>
+                        <div class="mb-3" id="gapInputContainer" style="display: none;">
+                            <label for="gapInput" class="form-label">Шаг спирали: <span id="gapValue">5</span></label>
+                            <input type="range" id="gapInput" class="form-range" min="1" max="20" step="1" value="5">
+                        </div>
+                        <div class="mb-3" id="turnsInputContainer" style="display: none;">
+                            <label for="turnsInput" class="form-label">Количество оборотов: <span id="turnsValue">1.5</span></label>
+                            <input type="range" id="turnsInput" class="form-range" min="1" max="5" step="0.1" value="1.5">
+                        </div>
+                        <div class="mb-3">
                             <label for="sizeInput" class="form-label">Размер текста: <span id="sizeValue">24</span>px</label>
                             <input type="range" id="sizeInput" class="form-range" min="10" max="72" step="1" value="24">
                         </div>
@@ -78,13 +93,18 @@
             size: document.getElementById('sizeInput'),
             color: document.getElementById('colorInput'),
             bgcolor: document.getElementById('bgColorInput'),
-            bg: document.getElementById('bgInput')
+            bg: document.getElementById('bgInput'),
+            shape: document.getElementById('shapeInput'),
+            gap: document.getElementById('gapInput'),
+            turns: document.getElementById('turnsInput')
         };
 
         const values = {
             speed: document.getElementById('speedValue'),
             radius: document.getElementById('radiusValue'),
-            size: document.getElementById('sizeValue')
+            size: document.getElementById('sizeValue'),
+            gap: document.getElementById('gapValue'),
+            turns: document.getElementById('turnsValue')
         };
 
         const urlDisplay = document.getElementById('urlDisplay');
@@ -92,6 +112,8 @@
         const copyLink = document.getElementById('copyLink');
         const previewFrame = document.getElementById('previewFrame');
 
+        const gapInputContainer = document.getElementById('gapInputContainer');
+        const turnsInputContainer = document.getElementById('turnsInputContainer');
         function updateLink() {
             const baseUrl = 'index.html';
             const params = new URLSearchParams();
@@ -104,6 +126,14 @@
             if (inputs.color.value !== '#333333') params.set('color', inputs.color.value.substring(1));
             if (inputs.bgcolor.value !== '#f0f8ff') params.set('bgcolor', inputs.bgcolor.value.substring(1));
             if (inputs.bg.value) params.set('bg', inputs.bg.value);
+            if (inputs.shape.value !== 'circle') params.set('shape', inputs.shape.value);
+            
+            if (inputs.shape.value === 'spiral' && inputs.gap.value !== '5') {
+                params.set('gap', inputs.gap.value);
+            }
+            if (inputs.shape.value === 'spiral' && inputs.turns.value !== '1.5') {
+                params.set('turns', inputs.turns.value);
+            }
 
             const queryString = params.toString();
             const previewUrl = queryString ? `${baseUrl}?${queryString}` : baseUrl;
@@ -128,6 +158,18 @@
         inputs.speed.addEventListener('input', () => { values.speed.textContent = inputs.speed.value; });
         inputs.radius.addEventListener('input', () => { values.radius.textContent = inputs.radius.value; });
         inputs.size.addEventListener('input', () => { values.size.textContent = inputs.size.value; });
+        inputs.gap.addEventListener('input', () => { values.gap.textContent = inputs.gap.value; });
+        inputs.turns.addEventListener('input', () => { values.turns.textContent = inputs.turns.value; });
+
+        inputs.shape.addEventListener('input', () => {
+            if (inputs.shape.value === 'spiral') {
+                gapInputContainer.style.display = 'block';
+                turnsInputContainer.style.display = 'block';
+            } else {
+                gapInputContainer.style.display = 'none';
+                turnsInputContainer.style.display = 'none';
+            }
+        });
 
         copyLink.addEventListener("click", () => copyTextToClipboard(urlDisplay.value));
 
