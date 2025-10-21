@@ -78,11 +78,11 @@ h1 {
 /* Используем calc() для адаптивного масштабирования относительно размера ячейки */
 /* Используем vmin, чтобы размер шрифта зависел от меньшей стороны окна (ширины или высоты).
    Это гарантирует, что цифры поместятся в ячейки даже в полноэкранном режиме на вытянутых экранах. */
-.grid-3x3 .cell { font-size: min(18vmin, 120px); }
-.grid-4x4 .cell { font-size: min(13vmin, 90px); }
-.grid-5x5 .cell { font-size: min(10vmin, 70px); }
-.grid-6x6 .cell { font-size: min(8vmin, 60px); }
-.grid-10x10 .cell { font-size: min(5vmin, 40px); }
+.grid-3x3 .cell { font-size: min(8vmin, 80px); } /* Уменьшаем vmin и px */
+.grid-4x4 .cell { font-size: min(6vmin, 60px); } /* Уменьшаем vmin и px */
+.grid-5x5 .cell { font-size: min(5vmin, 50px); } /* Уменьшаем vmin и px */
+.grid-6x6 .cell { font-size: min(4vmin, 40px); } /* Уменьшаем vmin и px */
+.grid-10x10 .cell { font-size: min(2.5vmin, 25px); } /* Уменьшаем vmin и px */
 
 .cell {
     display: flex;
