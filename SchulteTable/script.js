@@ -8,6 +8,7 @@ let startTime;
 // DOM-элементы
 const gridElement = document.getElementById('schulte-grid');
 const startButton = document.getElementById('start-button');
+const fullscreenButton = document.getElementById('fullscreen-btn'); // Новая кнопка
 const currentNumberSpan = document.getElementById('current-number');
 const totalNumbersSpan = document.getElementById('total-numbers');
 const timerSpan = document.getElementById('timer');
@@ -25,6 +26,23 @@ function shuffleArray(array) {
         [array[i], array[j]] = [array[j], array[i]];
     }
     return array;
+}
+
+function toggleFullscreen() {
+    const gameContainer = document.querySelector('.game-container');
+    if (!document.fullscreenElement) {
+        // Запрос перехода в полноэкранный режим
+        if (gameContainer.requestFullscreen) {
+            gameContainer.requestFullscreen();
+        } else if (gameContainer.webkitRequestFullscreen) { /* Safari */
+            gameContainer.webkitRequestFullscreen();
+        } else if (gameContainer.msRequestFullscreen) { /* IE11 */
+            gameContainer.msRequestFullscreen();
+        }
+    } else {
+        // Выход из полноэкранного режима
+        document.exitFullscreen();
+    }
 }
 
 /**
@@ -82,7 +100,7 @@ function handleCellClick(event) {
             gridElement.classList.remove('active');
             triggerConfetti();
             gameActive = false;
-            startButton.textContent = 'Сыграть снова';
+            startButton.textContent = 'Сыграть снова!';
             displayMessage(`Победа! Ваше время: ${timerSpan.textContent} с`, 'green');
         }
     } else {
@@ -95,7 +113,7 @@ function handleCellClick(event) {
         gridElement.classList.remove('active');
         stopTimer();
         gameActive = false;
-        startButton.textContent = 'Сыграть снова';        
+        startButton.textContent = 'Попробовать снова';        
         displayMessage('Неправильно! Попробуй снова...', 'red');
     }
 }
@@ -145,19 +163,25 @@ function startGame() {
     
     gameActive = true;
     gridElement.classList.add('active');
-    startButton.textContent = 'В процессе...';
+    startButton.textContent = 'Игра началась!';
     startTimer();
 }
 
 function displayMessage(text, color) {
     const messageElement = document.getElementById('message');
     messageElement.textContent = text;
-    messageElement.style.color = color;
-    messageElement.classList.remove('hidden');
+    // Используем классы Bootstrap для стилизации
+    messageElement.className = 'alert'; // Сброс классов
+    messageElement.style.opacity = '1'; // Делаем видимым
+    messageElement.style.visibility = 'visible';
+    const alertClass = color === 'green' ? 'alert-success' : 'alert-danger';
+    messageElement.classList.add(alertClass);
 }
 
 function hideMessage() {
-    document.getElementById('message').classList.add('hidden');
+    const messageElement = document.getElementById('message');
+    messageElement.style.opacity = '0'; // Делаем невидимым
+    messageElement.style.visibility = 'hidden';
 }
 
 function triggerConfetti() {
@@ -175,3 +199,4 @@ function triggerConfetti() {
 }
 
 startButton.addEventListener('click', startGame);
+fullscreenButton.addEventListener('click', toggleFullscreen);

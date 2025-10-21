@@ -3,25 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Квадрат Шульте</title>
+    <title>Квадрат Шульте 3x3</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link type="text/css" href="style.css" rel="stylesheet">
 </head>
 <body>
 
-    <div class="container">
-        <p>Найдите числа по порядку, от 1 до <span id="total-numbers">25</span>.</p>
+    <div class="container game-container text-center">
+        <button id="fullscreen-btn" class="btn btn-secondary btn-sm position-absolute top-0 end-0 m-3">🎮</button>
+        <p class="game-instruction">Найдите числа по порядку, от 1 до <span id="total-numbers">9</span>.</p>
         
-        <div id="game-info">
+        <div id="game-info" class="d-flex justify-content-around my-3">
             <p><strong>Текущее число:</strong> <span id="current-number">1</span></p>
             <p><strong>Время:</strong> <span id="timer">0.00</span> с</p>
         </div>
         
         <div id="schulte-grid"></div>
-        <button id="start-button">Начать игру</button>
-        <div id="message" class="hidden"></div>
+
+        <div class="d-flex justify-content-center gap-2 mt-3">
+            <button id="start-button" class="btn btn-primary btn-lg">Начать игру</button>
+        </div>
+        <div id="message" class="alert mt-3" role="alert"></div>
     </div>
 
     <div id="confetti-container"></div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <script src="script.js" type="text/javascript"></script>
     <script>
         window.addEventListener('load', function () {

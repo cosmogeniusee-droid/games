@@ -5,22 +5,30 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
+    height: 100vh; /* Используем height: 100vh, чтобы body всегда занимал всю высоту viewport */
     margin: 0;
     background: linear-gradient(135deg, #87CEEB 0%, #ADD8E6 100%); /* Голубой градиент */
-    overflow: hidden; /* Чтобы конфетти не создавало полосы прокрутки */
+    overflow: hidden; /* Чтобы предотвратить скролл body и конфетти */
+    box-sizing: border-box; /* Важно для корректного расчета высоты */
 }
 
-.container {
+/* Custom container for the game to avoid conflict with Bootstrap's .container */
+.game-container {
     background-color: #ffffff; /* Чистый белый фон */
-    padding: 30px;
+    padding: 20px; /* Уменьшаем padding, чтобы дать больше места контенту */
     border-radius: 25px; /* Сильнее скругленные углы */
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); /* Более выраженная тень */
-    text-align: center;
-    width: 380px; /* Немного шире для комфорта */
+    max-width: 800px; /* Увеличиваем максимальную ширину контейнера для большего поля */
+    width: 100%;
+    height: 100%; /* Позволяем контейнеру занимать всю высоту body */
+    max-height: calc(100vh - 40px); /* Ограничиваем максимальную высоту, учитывая возможные внешние отступы body */
+    display: flex; /* Делаем flex-контейнером */
+    flex-direction: column; /* Элементы внутри располагаются по вертикали */
+    justify-content: space-between; /* Распределяем пространство между элементами */
     position: relative;
     z-index: 1;
     border: 3px solid #FFD700; /* Золотая рамка */
+    box-sizing: border-box; /* Важно для корректного расчета высоты с padding */
 }
 
 h1 {
@@ -31,37 +39,50 @@ h1 {
     text-shadow: 2px 2px #FFD700; /* Желтая тень */
 }
 
-p {
+.game-instruction {
+    font-size: 1.1em; /* Меньший размер для инструкции */
     color: #4CAF50; /* Зеленый текст */
-    font-size: 1.1em;
 }
 
 #schulte-grid {
     display: grid;
-    width: 300px; /* Фиксированный размер для всех сеток */
-    height: 300px;
-    margin: 20px auto;
+    width: 100%; /* Занимает всю доступную ширину родителя */
+    aspect-ratio: 1; /* Сохраняет квадратную форму */
+    margin: auto; /* Центрируем по горизонтали и вертикали */
+    flex-grow: 1; /* Позволяем сетке занимать доступное вертикальное пространство */
+    max-width: 100%; /* Ограничиваем максимальную ширину */
+    max-height: 100%; /* Ограничиваем максимальную высоту, чтобы aspect-ratio работал корректно */
     border: 4px dashed #9370DB; /* Фиолетовая пунктирная рамка */
     border-radius: 15px; /* Скругленные углы сетки */
     overflow: hidden; /* Для скругления углов ячеек */
-    pointer-events: none; 
+    pointer-events: none;
     opacity: 0.7; /* Немного прозрачности, когда неактивна */
     transition: opacity 0.3s;
     background-color: #FFFAF0; /* Светлый фон сетки */
 }
 
 /* Динамические классы для разных размеров */
-.grid-3x3 { grid-template-columns: repeat(3, 1fr); font-size: 2.2em; }
-.grid-4x4 { grid-template-columns: repeat(4, 1fr); font-size: 1.8em; }
-.grid-5x5 { grid-template-columns: repeat(5, 1fr); font-size: 1.5em; }
-.grid-6x6 { grid-template-columns: repeat(6, 1fr); font-size: 1.2em; }
-.grid-10x10 { grid-template-columns: repeat(10, 1fr); font-size: 0.8em; }
+.grid-3x3 { grid-template-columns: repeat(3, 1fr); }
+.grid-4x4 { grid-template-columns: repeat(4, 1fr); }
+.grid-5x5 { grid-template-columns: repeat(5, 1fr); }
+.grid-6x6 { grid-template-columns: repeat(6, 1fr); }
+.grid-10x10 { grid-template-columns: repeat(10, 1fr); }
 
 
 #schulte-grid.active {
     pointer-events: all;
     opacity: 1;
 }
+
+/* Размеры шрифтов для ячеек, масштабируемые с размером сетки */
+/* Используем calc() для адаптивного масштабирования относительно размера ячейки */
+/* Используем vmin, чтобы размер шрифта зависел от меньшей стороны окна (ширины или высоты).
+   Это гарантирует, что цифры поместятся в ячейки даже в полноэкранном режиме на вытянутых экранах. */
+.grid-3x3 .cell { font-size: min(18vmin, 120px); }
+.grid-4x4 .cell { font-size: min(13vmin, 90px); }
+.grid-5x5 .cell { font-size: min(10vmin, 70px); }
+.grid-6x6 .cell { font-size: min(8vmin, 60px); }
+.grid-10x10 .cell { font-size: min(5vmin, 40px); }
 
 .cell {
     display: flex;
@@ -103,35 +124,15 @@ p {
 }
 
 /* Стили для кнопок и информации */
-#start-button {
-    padding: 12px 25px;
-    font-size: 1.3em;
-    cursor: pointer;
-    background-color: #00BFFF; /* Ярко-голубой */
-    color: white;
-    border: none;
-    border-radius: 20px; /* Сильно скругленная кнопка */
-    margin-top: 20px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-    transition: background-color 0.2s, transform 0.1s;
+/* Customizing Bootstrap button */
+#start-button.btn-primary {
     font-family: 'Fredoka One', cursive;
+    --bs-btn-bg: #00BFFF;
+    --bs-btn-border-color: #00BFFF;
+    --bs-btn-hover-bg: #1E90FF;
+    --bs-btn-hover-border-color: #1E90FF;
 }
-
-#start-button:hover:not(:disabled) {
-    background-color: #1E90FF; /* Темнее при наведении */
-    transform: translateY(-3px);
-}
-
-#start-button:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-    box-shadow: none;
-}
-
 #game-info {
-    display: flex;
-    justify-content: space-around;
-    margin-bottom: 20px;
     font-size: 1.2em;
     color: #8B4513; /* Коричневый для информации */
     font-weight: bold;
@@ -141,14 +142,9 @@ p {
     color: #FF69B4; /* Розовые акценты */
 }
 
-
 #message {
-    margin-top: 20px;
-    font-weight: bold;
-    font-size: 1.2em;
-}
-.hidden {
-    display: none;
+    visibility: hidden; /* Скрываем, но сохраняем место в макете */
+    transition: visibility 0s, opacity 0.3s linear; /* Плавное появление/исчезновение */
 }
 
 /* Анимация звездочек (конфетти) */
