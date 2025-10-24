@@ -71,28 +71,23 @@ function formatTime(totalMilliseconds) {
  * @param {Array<Object>} points - Массив точек {x, y}
  */
 function drawSpline(context, points) {
-    const startPoint = points[0];
-    const endPoint = points[points.length - 1];
-    context.moveTo(startPoint.x, startPoint.y);
-    // 2. Основной сплайн 
-    let currentPoint = { x: startPoint.x, y: startPoint.y };
-
-    for (let i = 1; i < points.length - 1; i++) {
-        const p1 = points[i];
-        const p2 = points[i + 1];
-
-        // Середина следующего сегмента
-        const midX = (p1.x + p2.x) / 2;
-        const midY = (p1.y + p2.y) / 2;
-
-        // Кривая от текущей точки к середине, p1 как контрольная
-        context.quadraticCurveTo(p1.x, p1.y, midX, midY);
-
-        currentPoint = { x: midX, y: midY };
+    if (points.length < 2) {
+        return;
     }
 
-    // 4. Горизонтальный финал
-    context.lineTo(endPoint.x, endPoint.y);
+    context.moveTo(points[0].x, points[0].y);
+
+    for (let i = 0; i < points.length - 2; i++) {
+        // Находим среднюю точку между текущей и следующей точкой
+        const xc = (points[i].x + points[i + 1].x) / 2;
+        const yc = (points[i].y + points[i + 1].y) / 2;
+        // Рисуем кривую до этой средней точки, используя следующую точку как контрольную
+        context.quadraticCurveTo(points[i].x, points[i].y, xc, yc);
+    }
+
+    // Рисуем последнюю кривую до конечной точки
+    const last = points.length - 2;
+    context.quadraticCurveTo(points[last].x, points[last].y, points[last + 1].x, points[last + 1].y);
 }
 
 
