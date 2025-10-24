@@ -142,51 +142,50 @@ function smoothPathAngles(points, minAngleDegrees, iteration = 0) {
 // Создание путей лабиринта (Только точки с равномерным распределением)
 function generatePaths() {
     paths = [];
-    const stepY = CANVAS_HEIGHT / (NUM_PATHS + 1);
-
     
+    // Получаем реальные DOM-элементы и позицию canvas
+    const numberCells = document.querySelectorAll('.number-cell');
+    const letterCells = document.querySelectorAll('.letter-cell');
+    const canvasRect = canvas.getBoundingClientRect();
+
     const STABILIZE_LINE_LENGTH = 20;
 
 
     // Равномерное распределение по X и Y
     for (let i = 0; i < NUM_PATHS; i++) {
-        const startY = (i + 1) * stepY; // Y-координата входа
+        // Вычисляем Y-координату на основе реального положения ячейки
+        const startCell = numberCells[i];
+        const startCellRect = startCell.getBoundingClientRect();
+        const startY = (startCellRect.top - canvasRect.top) + (startCellRect.height / 2);
+
         const targetAnagramIndex = targetLetterPositions[i];
-        const endY = (targetAnagramIndex + 1) * stepY; // Y-координата выхода
+        const endCell = letterCells[targetAnagramIndex];
+        const endCellRect = endCell.getBoundingClientRect();
+        const endY = (endCellRect.top - canvasRect.top) + (endCellRect.height / 2);
 
         let pathPoints = [];
         pathPoints.push({ x: 0, y: startY }); // Начальная точка (Вход)
         pathPoints.push({ x: STABILIZE_LINE_LENGTH, y: startY }); // Прямой обязательный отрезок
 
-        // Разделяем холст на 4 квадранта для равномерного распределения точек
-        const midX = CANVAS_WIDTH / 2;
-        const midY = CANVAS_HEIGHT / 2;
+        // Разделяем доступную ширину на сегменты для каждой случайной точки, чтобы они не скапливались.
+        const availableWidth = CANVAS_WIDTH - 2 * STABILIZE_LINE_LENGTH;
+        const segmentWidth = availableWidth / NUM_RANDOM_POINTS;
 
-        // Генерируем NUM_RANDOM_POINTS случайных точек, равномерно распределяя их по 4 квадрантам
+        // Генерируем NUM_RANDOM_POINTS случайных точек, каждая в своем сегменте по X.
         for (let j = 0; j < NUM_RANDOM_POINTS; j++) {
-            const quadrant = j % 4; // Определяем квадрант (0, 1, 2, 3)
-            let x, y;
-
-            if (quadrant === 0) { // Верхний левый
-                x = Math.random() * midX;
-                y = Math.random() * midY;
-            } else if (quadrant === 1) { // Верхний правый
-                x = midX + Math.random() * midX;
-                y = Math.random() * midY;
-            } else if (quadrant === 2) { // Нижний левый
-                x = Math.random() * midX;
-                y = midY + Math.random() * midY;
-            } else { // Нижний правый
-                x = midX + Math.random() * midX;
-                y = midY + Math.random() * midY;
-            }
+            // Генерируем X в пределах текущего сегмента
+            const segmentXStart = STABILIZE_LINE_LENGTH + j * segmentWidth;
+            const x = segmentXStart + Math.random() * segmentWidth;
+            
+            // Генерируем Y в пределах всего холста, чтобы пути были более разнообразными
+            const y = Math.random() * CANVAS_HEIGHT;
+            
             pathPoints.push({ x, y });
         }
 
-        // Сортируем точки по X, чтобы линия шла слева направо
+        // Точки уже отсортированы по X благодаря сегментированной генерации
         const startPoints = pathPoints.slice(0, 2); // Первые две точки (стабилизирующие)
         const randomPoints = pathPoints.slice(2);   // Остальные случайные точки
-        //randomPoints.sort((a, b) => a.x - b.x);      // not allowed to sort
         pathPoints = [...startPoints, ...randomPoints];
 
         pathPoints.push({ x: CANVAS_WIDTH - STABILIZE_LINE_LENGTH, y: endY });// Прямой обязательный отрезок
