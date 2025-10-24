@@ -8,6 +8,8 @@ const WORD_LIST = [
     "ЗАГАДКА",
     "ГОЛОВОЛОМКА"
 ];
+
+const NUM_RANDOM_POINTS = 4;
 const CANVAS_WIDTH = 600;
 const CANVAS_HEIGHT = 400;
 
@@ -90,22 +92,63 @@ function drawSpline(context, points) {
     context.quadraticCurveTo(points[last].x, points[last].y, points[last + 1].x, points[last + 1].y);
 }
 
+/**
+ * Сглаживает острые углы в пути, добавляя промежуточные точки.
+ * @param {Array<Object>} points - Массив точек пути.
+ * @param {number} minAngleDegrees - Минимальный допустимый угол в градусах.
+ * @returns {Array<Object>} - Новый массив точек со сглаженными углами.
+ */
+function smoothPathAngles(points, minAngleDegrees, iteration = 0) {
+    const MAX_ITERATIONS = 5; // Предохранитель от бесконечного цикла
+    if (points.length < 3 || iteration >= MAX_ITERATIONS) {
+        return points;
+    }
+
+    const minAngleRad = minAngleDegrees * (Math.PI / 180);
+    let newPoints = [points[0]];
+    let smoothed = false;
+
+    for (let i = 1; i < points.length - 1; i++) {
+        const p1 = newPoints[newPoints.length - 1]; // Предыдущая точка из нового массива
+        const p2 = points[i]; // Текущая точка для проверки угла
+        const p3 = points[i + 1];
+
+        // Векторы от p2 к p1 и p3
+        const v1 = { x: p1.x - p2.x, y: p1.y - p2.y };
+        const v2 = { x: p3.x - p2.x, y: p3.y - p2.y };
+
+        // Угол между векторами в радианах
+        const angle = Math.acos((v1.x * v2.x + v1.y * v2.y) / (Math.sqrt(v1.x*v1.x + v1.y*v1.y) * Math.sqrt(v2.x*v2.x + v2.y*v2.y)));
+
+        if (angle < minAngleRad) {
+            // Угол слишком острый. "Срезаем" его, заменяя p2 двумя новыми точками.
+            const offsetFactor = 0.3; // Насколько "срезать" угол (30%)
+            const newP1 = { x: p2.x + (p1.x - p2.x) * offsetFactor, y: p2.y + (p1.y - p2.y) * offsetFactor };
+            const newP2 = { x: p2.x + (p3.x - p2.x) * offsetFactor, y: p2.y + (p3.y - p2.y) * offsetFactor };
+            newPoints.push(newP1, newP2);
+            smoothed = true;
+        } else {
+            newPoints.push(p2);
+        }
+    }
+
+    newPoints.push(points[points.length - 1]);
+
+    // Если были сглаживания, рекурсивно вызываем функцию еще раз,
+    // так как новые точки могли создать новые острые углы.
+    return smoothed ? smoothPathAngles(newPoints, minAngleDegrees, iteration + 1) : newPoints;
+}
 
 // Создание путей лабиринта (Только точки с равномерным распределением)
 function generatePaths() {
     paths = [];
     const stepY = CANVAS_HEIGHT / (NUM_PATHS + 1);
 
-    const NUM_RANDOM_POINTS = 10;
     
     const STABILIZE_LINE_LENGTH = 20;
 
-    const POINT_RANGE_Y = CANVAS_HEIGHT;
 
     // Равномерное распределение по X и Y
-    const POINT_RANGE_X_START = 0;
-    const POINT_RANGE_X_END = CANVAS_WIDTH;
-
     for (let i = 0; i < NUM_PATHS; i++) {
         const startY = (i + 1) * stepY; // Y-координата входа
         const targetAnagramIndex = targetLetterPositions[i];
@@ -115,21 +158,43 @@ function generatePaths() {
         pathPoints.push({ x: 0, y: startY }); // Начальная точка (Вход)
         pathPoints.push({ x: STABILIZE_LINE_LENGTH, y: startY }); // Прямой обязательный отрезок
 
-        // Генерируем NUM_RANDOM_POINTS рандомных точек
+        // Разделяем холст на 4 квадранта для равномерного распределения точек
+        const midX = CANVAS_WIDTH / 2;
+        const midY = CANVAS_HEIGHT / 2;
+
+        // Генерируем NUM_RANDOM_POINTS случайных точек, равномерно распределяя их по 4 квадрантам
         for (let j = 0; j < NUM_RANDOM_POINTS; j++) {
-            const randomX = POINT_RANGE_X_START + Math.random() * (POINT_RANGE_X_END - POINT_RANGE_X_START);
-            const randomY = Math.random() * POINT_RANGE_Y;
-            pathPoints.push({ x: randomX, y: randomY });
+            const quadrant = j % 4; // Определяем квадрант (0, 1, 2, 3)
+            let x, y;
+
+            if (quadrant === 0) { // Верхний левый
+                x = Math.random() * midX;
+                y = Math.random() * midY;
+            } else if (quadrant === 1) { // Верхний правый
+                x = midX + Math.random() * midX;
+                y = Math.random() * midY;
+            } else if (quadrant === 2) { // Нижний левый
+                x = Math.random() * midX;
+                y = midY + Math.random() * midY;
+            } else { // Нижний правый
+                x = midX + Math.random() * midX;
+                y = midY + Math.random() * midY;
+            }
+            pathPoints.push({ x, y });
         }
 
         // Сортируем точки по X, чтобы линия шла слева направо
-        const fixedPoints = pathPoints.slice(0, 1);
-        const randomPoints = pathPoints.slice(1);
-
-        pathPoints = [...fixedPoints, ...randomPoints];
+        const startPoints = pathPoints.slice(0, 2); // Первые две точки (стабилизирующие)
+        const randomPoints = pathPoints.slice(2);   // Остальные случайные точки
+        //randomPoints.sort((a, b) => a.x - b.x);      // not allowed to sort
+        pathPoints = [...startPoints, ...randomPoints];
 
         pathPoints.push({ x: CANVAS_WIDTH - STABILIZE_LINE_LENGTH, y: endY });// Прямой обязательный отрезок
         pathPoints.push({ x: CANVAS_WIDTH, y: endY }); // Конечная точка (Выход)
+
+        // Сглаживаем острые углы
+        const MIN_ANGLE = 45; // Минимальный угол в 45 градусов
+        pathPoints = smoothPathAngles(pathPoints, MIN_ANGLE);
 
         paths.push({
             points: pathPoints,
@@ -145,7 +210,7 @@ function drawMaze() {
 
     // Толщина линии 5px
     const LINE_THICKNESS = 5;
-    paths.length = 1;
+    // paths.length = 1; // Убрал строку для отладки, чтобы видеть все пути
     paths.forEach((pathData, index) => {
         const isMatched = document.querySelector(`.number-cell[data-index="${index}"]`).classList.contains('matched');
 
@@ -163,10 +228,14 @@ function drawMaze() {
 
         // Отрисовка контрольных точек для отладки
         ctx.fillStyle = 'black';
-        points.forEach(p => {
+        points.forEach((p, i) => {
             ctx.beginPath();
             ctx.arc(p.x, p.y, 3, 0, 2 * Math.PI); // Маленький черный кружок
             ctx.fill();
+            // Добавляем номер точки
+            ctx.font = '10px Arial';
+            ctx.fillStyle = 'red';
+            ctx.fillText(i, p.x + 5, p.y - 5);
         });
 
         // Отрисовка входов (кругов у цифр)
