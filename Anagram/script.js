@@ -396,6 +396,11 @@ function startGame() {
 
     // 7. Создание элементов и лабиринта
     setupGameElements();
+
+    // Устанавливаем высоту canvas равной высоте колонок
+    const columnHeight = leftColumn.offsetHeight;
+    canvas.height = Math.max(columnHeight, 400);
+
     generatePaths();
     drawMaze();
 }
