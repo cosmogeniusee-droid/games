@@ -28,12 +28,14 @@ const remainingCountDisplay = document.getElementById('remaining-count');
 const startButton = document.getElementById('start-button');
 const messageArea = document.getElementById('message-area');
 const fullscreenButton = document.getElementById('fullscreen-button');
-const timerDisplay = document.getElementById('timer'); // Новый элемент таймера
+const timerDisplay = document.getElementById('timer');
+const errorCountDisplay = document.getElementById('error-count');
 
 // Переменные состояния игры
 let targetLetters = [];
 let remainingCount = 0;
 let isGameActive = false;
+let errorCount = 0;
 let timerInterval;
 
 
@@ -196,6 +198,8 @@ function handleCellClick(event) {
         // Неправильный клик
         cell.classList.add('wrong');
         
+        errorCount++;
+        updateErrorCount();
         // Удаляем класс 'wrong' через короткое время
         setTimeout(() => {
             cell.classList.remove('wrong');
@@ -211,6 +215,13 @@ function updateRemainingCount() {
 }
 
 /**
+ * Обновляет отображение количества ошибок.
+ */
+function updateErrorCount() {
+    errorCountDisplay.textContent = errorCount;
+}
+
+/**
  * Завершает игру и выводит сообщение.
  * @param {boolean} isWin Флаг победы.
  */
@@ -223,7 +234,7 @@ function endGame(isWin) {
     messageArea.classList.remove('hidden');
     if (isWin) {
         const finalTime = timerDisplay.textContent;
-        messageArea.innerHTML = `ПОБЕДА! 🎉 Время: ${finalTime}. Ты нашел все буквы!`;
+        messageArea.innerHTML = `ПОБЕДА! 🎉 Время: ${finalTime}. Ошибок: ${errorCount}. Ты нашел все буквы!`;
         messageArea.style.backgroundColor = '#a4f5aa';
         messageArea.style.borderColor = '#3cb371';
     } else {
@@ -257,11 +268,14 @@ function generateGameField() {
 function startGame() {
     // 1. Сбрасываем состояние
     isGameActive = true;
+    errorCount = 0;
     messageArea.classList.add('hidden');
     gameBoard.classList.remove('disabled');
     gameBoard.style.gridTemplateColumns = `repeat(${GRID_SIZE}, 1fr)`;
     gameBoard.style.setProperty('--letter-font-size', `${FONT_SIZE}em`);
     startButton.textContent = 'Новая игра!';
+    
+    updateErrorCount();
     stopTimer(); // Сброс таймера перед стартом
     timerDisplay.textContent = '00:00';
 
