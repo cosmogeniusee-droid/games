@@ -2,12 +2,22 @@
 const RUSSIAN_ALPHABET = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"; 
 const FREQUENT_LETTERS = "АЕИОУРСТНЛКВДМПБГЖЗК"; // Более частые для отвлекающего фона
 
+// --- Получение параметров из URL ---
+const urlParams = new URLSearchParams(window.location.search);
+const urlGridSize = urlParams.get('gridSize');
+const urlTargets = urlParams.get('targets');
+const urlMin = urlParams.get('min');
+const urlMax = urlParams.get('max');
+const urlCustomTargets = urlParams.get('customTargets');
+
 // Настройки игры
-const GRID_SIZE = 15; // Размер сетки 15x15
-const TOTAL_CELLS = GRID_SIZE * GRID_SIZE;
-const TARGET_LETTERS_COUNT = 3; // Сколько разных букв нужно найти
-const MIN_OCCURRENCE = 6; // Минимальное количество каждой целевой буквы
-const MAX_OCCURRENCE = 12; // Максимальное количество каждой целевой буквы
+const GRID_SIZE = urlGridSize ? parseInt(urlGridSize, 10) : 15; // Размер сетки
+let TOTAL_CELLS = GRID_SIZE * GRID_SIZE;
+const TARGET_LETTERS_COUNT = urlTargets ? parseInt(urlTargets, 10) : 3; // Сколько разных букв нужно найти
+const MIN_OCCURRENCE = urlMin ? parseInt(urlMin, 10) : 6; // Минимальное количество каждой целевой буквы
+const MAX_OCCURRENCE = urlMax ? parseInt(urlMax, 10) : 12; // Максимальное количество каждой целевой буквы
+
+
 
 // DOM элементы
 const gameBoard = document.getElementById('game-board');
@@ -220,6 +230,24 @@ function endGame(isWin) {
         messageArea.style.borderColor = '#ff1493';
     }
 }
+function generateGameField() {
+       // 2. Генерируем буквы
+    if (urlCustomTargets) {
+        // Используем заданные буквы, отфильтровав пустые значения
+        targetLetters = urlCustomTargets.split(',').filter(letter => letter.trim() !== '');
+    } else {
+        // Выбираем случайные буквы
+        targetLetters = chooseTargetLetters(TARGET_LETTERS_COUNT);
+    }
+    const letterArray = generateLetterArray(targetLetters);
+
+    // 3. Обновляем UI задания
+    targetLettersDisplay.textContent = targetLetters.join(', ');
+    updateRemainingCount();
+    
+    // 4. Рендерим поле
+    renderGameBoard(letterArray);
+}
 
 /**
  * Инициализирует новую игру.
@@ -229,20 +257,12 @@ function startGame() {
     isGameActive = true;
     messageArea.classList.add('hidden');
     gameBoard.classList.remove('disabled');
+    gameBoard.style.gridTemplateColumns = `repeat(${GRID_SIZE}, 1fr)`;
     startButton.textContent = 'Новая игра!';
     stopTimer(); // Сброс таймера перед стартом
     timerDisplay.textContent = '00:00';
 
-    // 2. Генерируем буквы
-    targetLetters = chooseTargetLetters(TARGET_LETTERS_COUNT);
-    const letterArray = generateLetterArray(targetLetters);
-
-    // 3. Обновляем UI задания
-    targetLettersDisplay.textContent = targetLetters.join(', ');
-    updateRemainingCount();
-    
-    // 4. Рендерим поле
-    renderGameBoard(letterArray);
+    generateGameField();
     
     // 5. Запускаем таймер
     startTimer();
@@ -256,9 +276,8 @@ startButton.addEventListener('click', startGame);
 fullscreenButton.addEventListener('click', toggleFullScreen);
 
 // Настраиваем начальный вид
-targetLetters = chooseTargetLetters(TARGET_LETTERS_COUNT);
-targetLettersDisplay.textContent = targetLetters.join(', ');
+generateGameField();
 remainingCountDisplay.textContent = '...';
+gameBoard.style.gridTemplateColumns = `repeat(${GRID_SIZE}, 1fr)`;
 timerDisplay.textContent = '00:00';
-gameBoard.innerHTML = '<p style="font-size: 1.5em; color: #555;">Нажмите "Начать игру", чтобы появилось табло с буквами.</p>';
 gameBoard.classList.add('disabled');

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Настройка игры "Найди Букву!"</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+</head>
+<body class="bg-light vh-100">
+    <div class="container-fluid h-100 py-4">
+        <h1 class="mb-4 text-center">⚙️ Конфигуратор игры "Найди Букву!"</h1>
+        <div class="row g-4 h-100">
+            <!-- Левая колонка: Настройки -->
+            <div class="col-lg-5 d-flex flex-column">
+                <div class="card flex-grow-1">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">Настройки</h5>
+                        
+                        <div class="mb-3">
+                            <label for="customTargetsInput" class="form-label">Буквы для поиска (через запятую, например: А,Б,В):</label>
+                            <input type="text" id="customTargetsInput" class="form-control" placeholder="Если пусто, буквы выберутся случайно">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="gridSize" class="form-label">Размер сетки: <span id="gridSizeValue" class="fw-bold text-primary">15</span>x<span id="gridSizeValue2" class="fw-bold text-primary">15</span></label>
+                            <input type="range" id="gridSize" class="form-range" value="15" min="5" max="30">
+                        </div>
+
+                        <div class="mb-3" id="targets-group">
+                            <label for="targets" class="form-label">Количество случайных букв: <span id="targetsValue" class="fw-bold text-primary">3</span></label>
+                            <input type="range" id="targets" class="form-range" value="3" min="1" max="10">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="min" class="form-label">Мин. кол-во каждой буквы: <span id="minValue" class="fw-bold text-primary">6</span></label>
+                            <input type="range" id="min" class="form-range" value="6" min="1" max="20">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="max" class="form-label">Макс. кол-во каждой буквы: <span id="maxValue" class="fw-bold text-primary">12</span></label>
+                            <input type="range" id="max" class="form-range" value="12" min="1" max="30">
+                        </div>
+
+                        <hr>
+                        <div class="mt-auto">
+                            <div class="mb-3">
+                                <label for="urlDisplay" class="form-label">Сгенерированная ссылка:</label>
+                                <div class="input-group">
+                                    <input type="text" id="urlDisplay" class="form-control" readonly>
+                                    <button class="btn btn-outline-secondary" type="button" id="copyBtn">Копировать</button>
+                                </div>
+                            </div>
+                            <a id="gameLink" href="#" target="_blank" class="btn btn-success w-100">🚀 Открыть игру в новой вкладке</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Правая колонка: Превью -->
+            <div class="col-lg-7 d-flex flex-column">
+                <div class="card flex-grow-1">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">Превью</h5>
+                        <div class="flex-grow-1 border rounded overflow-hidden">
+                            <iframe id="previewFrame" src="" title="Превью игры" class="w-100 h-100 border-0"></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const inputs = {
+            customTargets: document.getElementById('customTargetsInput'),
+            gridSize: document.getElementById('gridSize'),
+            targets: document.getElementById('targets'),
+            min: document.getElementById('min'),
+            max: document.getElementById('max'),
+        };
+
+        const valueDisplays = {
+            gridSize: document.getElementById('gridSizeValue'),
+            gridSize2: document.getElementById('gridSizeValue2'),
+            targets: document.getElementById('targetsValue'),
+            min: document.getElementById('minValue'),
+            max: document.getElementById('maxValue'),
+        };
+
+        const urlDisplay = document.getElementById('urlDisplay');
+        const gameLink = document.getElementById('gameLink');
+        const copyBtn = document.getElementById('copyBtn');
+        const previewFrame = document.getElementById('previewFrame');
+        const targetsGroup = document.getElementById('targets-group');
+
+        function updateValueDisplays() {
+            valueDisplays.gridSize.textContent = inputs.gridSize.value;
+            valueDisplays.gridSize2.textContent = inputs.gridSize.value;
+            valueDisplays.targets.textContent = inputs.targets.value;
+            valueDisplays.min.textContent = inputs.min.value;
+            valueDisplays.max.textContent = inputs.max.value;
+
+            if (parseInt(inputs.max.value) < parseInt(inputs.min.value)) {
+                inputs.max.value = inputs.min.value;
+                valueDisplays.max.textContent = inputs.max.value;
+            }
+        }
+
+        function updateLink() {
+            const baseUrl = 'index.html';
+            const params = new URLSearchParams();
+            const customTargetsValue = inputs.customTargets.value.trim().toUpperCase().replace(/[^А-ЯЁ,]/g, '');
+
+            if (customTargetsValue) {
+                params.set('customTargets', customTargetsValue);
+            } else if (inputs.targets.value !== '3') {
+                params.set('targets', inputs.targets.value);
+            }
+            
+            if (inputs.gridSize.value !== '15') params.set('gridSize', inputs.gridSize.value);
+            if (inputs.min.value !== '6') params.set('min', inputs.min.value);
+            if (inputs.max.value !== '12') params.set('max', inputs.max.value);
+
+            const queryString = params.toString();
+            const previewUrl = queryString ? `${baseUrl}?${queryString}` : baseUrl;
+            const fullUrl = `https://cosmogeniusee-droid.github.io/games/FindChar/${previewUrl}`;
+            urlDisplay.value = fullUrl;
+            gameLink.href = previewUrl;
+            previewFrame.src = fullUrl;
+        }
+
+        function copyTextToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = copyBtn.textContent;
+                copyBtn.textContent = 'Скопировано!';
+                setTimeout(() => { copyBtn.textContent = originalText; }, 2000);
+            }).catch(err => console.error('Ошибка копирования: ', err));
+        }
+
+        Object.values(inputs).forEach(input => {
+            input.addEventListener('input', () => {
+                updateValueDisplays();
+                updateLink();
+            });
+        });
+
+        inputs.customTargets.addEventListener('input', () => {
+            targetsGroup.style.display = inputs.customTargets.value.trim() ? 'none' : 'block';
+        });
+
+        copyBtn.addEventListener("click", () => copyTextToClipboard(urlDisplay.value));
+
+        updateValueDisplays();
+        updateLink();
+    </script>
+</body>
+</html>
