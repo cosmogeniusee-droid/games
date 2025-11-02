@@ -1,0 +1,194 @@
+/* Базовые стили для детской стилистики */
+body {
+    font-family: 'Arial Black', sans-serif; /* Жирный, детский шрифт для заголовков */
+    background-color: #f7e8a9; /* Яркий, песочный фон */
+    color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+}
+
+.game-container {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 25px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    /* Убираем фиксированную ширину, делаем контейнер адаптивным */
+    max-width: 95vw; 
+    width: 1100px; /* Максимальная ширина для больших экранов */
+}
+
+h1 {
+    color: #ff6347; /* Ярко-красный */
+    margin-bottom: 10px; /* Уменьшаем отступ */
+    font-size: 2em; /* Уменьшен заголовок */
+    text-shadow: 2px 2px #feca57; /* Тени для объема */
+}
+
+/* Элементы управления и информация */
+.controls {
+    /* Делаем блок гибким для компактного размещения */
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 15px;
+    margin-bottom: 10px;
+    background-color: #a4f5aa; /* Светло-зеленый фон */
+    border-radius: 15px;
+    border: 3px dashed #3cb371;
+}
+
+.target-info {
+    font-size: 1.2em; /* Уменьшен текст инструкции */
+    font-weight: bold;
+    color: #007bff; /* Синий */
+    margin: 0; /* Убираем лишние отступы */
+}
+
+.target-letters {
+    font-size: 1.5em; /* Уменьшены искомые буквы */
+    color: #ff1493; /* Розовый акцент */
+    display: inline-block;
+    padding: 0 10px;
+}
+
+.score-info {
+    font-size: 1.1em; /* Уменьшен текст */
+    color: #4682b4; /* Стальной синий */
+    margin: 0; /* Убираем лишние отступы */
+}
+
+/* Стиль таймера */
+.timer-info {
+    font-size: 1.3em; /* Уменьшен текст таймера */
+    font-weight: bold;
+    color: #008080; /* Темно-бирюзовый */
+    margin: 0; /* Убираем лишние отступы */
+}
+#timer {
+    color: #ff6347; /* Яркий акцент для времени */
+    font-size: 1.2em;
+}
+
+.buttons-container {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 0; /* Убираем лишние отступы */
+    flex-wrap: wrap;
+}
+
+#start-button,
+#fullscreen-button {
+    background-color: #4CAF50; /* Зеленая кнопка */
+    color: white;
+    padding: 10px 20px;
+    font-size: 1.2em;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 5px #388e3c;
+    transition: background-color 0.1s;
+}
+
+#start-button:hover,
+#fullscreen-button:hover {
+    background-color: #45a049;
+}
+
+#start-button:active,
+#fullscreen-button:active {
+    box-shadow: 0 2px #388e3c;
+    transform: translateY(3px);
+}
+
+/* Игровое поле */
+.game-board {
+    display: grid;
+    grid-template-columns: repeat(15, 1fr);
+    grid-gap: 5px; /* Немного уменьшаем дистанцию для компактности */
+    background-color: #f0f0f0;
+    padding: 10px;
+    border-radius: 10px;
+    border: 2px solid #ccc;
+    min-height: 300px;
+}
+
+/* Стиль отдельной буквы (Книжный/Классический стиль) */
+.letter-cell {
+    background-color: #fcf8e3; /* Светло-бежевый, как бумага */
+    border: 1px solid #c0b497; /* Тонкая рамка */
+    border-radius: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    /* Книжный шрифт: Lora italic, если загружен. Иначе - Times New Roman */
+    font-family: 'Lora', 'Times New Roman', serif;
+    font-style: italic; 
+    font-weight: 600; /* Полужирный */
+    
+    font-size: 1.7em; /* Шрифт все еще крупный, но более компактный */
+    height: 1.4em; /* Высота ячейки адаптирована под шрифт */
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.1s, opacity 0.3s;
+}
+
+.letter-cell:hover:not(.found):not(.disabled) {
+    transform: scale(1.05);
+    background-color: #e0d9b9; /* Легкое затемнение, как отпечаток */
+}
+
+.letter-cell:active:not(.found):not(.disabled) {
+    transform: scale(0.95);
+}
+
+/* Состояния букв */
+.found {
+    background-color: #3cb371;
+    color: white;
+    opacity: 0.5;
+    cursor: default;
+    pointer-events: none;
+}
+
+.wrong {
+    background-color: #ff4500;
+    color: white;
+    animation: shake 0.5s;
+}
+
+.disabled {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+/* Сообщение о победе */
+.message-area {
+    margin-top: 20px;
+    padding: 20px;
+    background-color: #ffe066;
+    border: 4px solid #feca57;
+    border-radius: 15px;
+    font-size: 2em;
+    font-weight: bold;
+    color: #e91e63;
+}
+
+.hidden {
+    display: none;
+}
+
+/* Анимация тряски для неправильного ответа */
+@keyframes shake {
+    0%, 100% {transform: translateX(0);}
+    20%, 60% {transform: translateX(-5px);}
+    40%, 80% {transform: translateX(5px);}
+}

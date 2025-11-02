@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Найди Букву! (Книжный стиль)</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@1,600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="game-container">
+        <h1>🔍 Найди Букву! 📜</h1>
+        
+        <div class="controls">
+            <p class="target-info">
+                Нажми на все буквы: <span id="target-letters-display" class="target-letters"></span>
+            </p>
+            <p class="timer-info">
+                Время: <span id="timer">00:00</span>
+            </p>
+            <p class="score-info">
+                Осталось найти: <span id="remaining-count">0</span>
+            </p>
+            <div class="buttons-container">
+                <button id="start-button">Начать игру! 🚀</button>
+                <button id="fullscreen-button">На весь экран ↔️</button>
+            </div>
+        </div>
+        
+        <div id="game-board" class="game-board">
+            </div>
+
+        <div id="message-area" class="message-area hidden">
+            </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
