@@ -9,6 +9,7 @@ const urlTargets = urlParams.get('targets');
 const urlMin = urlParams.get('min');
 const urlMax = urlParams.get('max');
 const urlCustomTargets = urlParams.get('customTargets');
+const urlFontSize = urlParams.get('fontSize');
 
 // Настройки игры
 const GRID_SIZE = urlGridSize ? parseInt(urlGridSize, 10) : 15; // Размер сетки
@@ -16,6 +17,7 @@ let TOTAL_CELLS = GRID_SIZE * GRID_SIZE;
 const TARGET_LETTERS_COUNT = urlTargets ? parseInt(urlTargets, 10) : 3; // Сколько разных букв нужно найти
 const MIN_OCCURRENCE = urlMin ? parseInt(urlMin, 10) : 6; // Минимальное количество каждой целевой буквы
 const MAX_OCCURRENCE = urlMax ? parseInt(urlMax, 10) : 12; // Максимальное количество каждой целевой буквы
+const FONT_SIZE = urlFontSize ? parseFloat(urlFontSize) : 1.7; // Размер шрифта букв
 
 
 
@@ -258,6 +260,7 @@ function startGame() {
     messageArea.classList.add('hidden');
     gameBoard.classList.remove('disabled');
     gameBoard.style.gridTemplateColumns = `repeat(${GRID_SIZE}, 1fr)`;
+    gameBoard.style.setProperty('--letter-font-size', `${FONT_SIZE}em`);
     startButton.textContent = 'Новая игра!';
     stopTimer(); // Сброс таймера перед стартом
     timerDisplay.textContent = '00:00';
@@ -279,5 +282,6 @@ fullscreenButton.addEventListener('click', toggleFullScreen);
 generateGameField();
 remainingCountDisplay.textContent = '...';
 gameBoard.style.gridTemplateColumns = `repeat(${GRID_SIZE}, 1fr)`;
+gameBoard.style.setProperty('--letter-font-size', `${FONT_SIZE}em`);
 timerDisplay.textContent = '00:00';
 gameBoard.classList.add('disabled');

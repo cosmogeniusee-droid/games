@@ -134,7 +134,7 @@ h1 {
     font-style: italic; 
     font-weight: 600; /* Полужирный */
     
-    font-size: 1.7em; /* Шрифт все еще крупный, но более компактный */
+    font-size: var(--letter-font-size, 1.7em); /* Шрифт все еще крупный, но более компактный */
     height: 1.4em; /* Высота ячейки адаптирована под шрифт */
     cursor: pointer;
     user-select: none;

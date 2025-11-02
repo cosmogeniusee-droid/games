@@ -11,3 +11,6 @@
 
 * [Вращающийся текст](/TextRotator/index.html)
 * [Вращающийся текст (Создание ссылки)](/TextRotator/config.html)
+
+* [Поиск буквы](/FindChar/index.html)
+* [Поиск буквы (Создание ссылки)](/FindChar/config.html)

@@ -42,6 +42,11 @@
                             <input type="range" id="max" class="form-range" value="12" min="1" max="30">
                         </div>
 
+                        <div class="mb-3">
+                            <label for="fontSize" class="form-label">Размер букв: <span id="fontSizeValue" class="fw-bold text-primary">1.7</span>em</label>
+                            <input type="range" id="fontSize" class="form-range" value="1.7" min="1" max="3" step="0.1">
+                        </div>
+
                         <hr>
                         <div class="mt-auto">
                             <div class="mb-3">
@@ -77,6 +82,7 @@
             targets: document.getElementById('targets'),
             min: document.getElementById('min'),
             max: document.getElementById('max'),
+            fontSize: document.getElementById('fontSize'),
         };
 
         const valueDisplays = {
@@ -85,6 +91,7 @@
             targets: document.getElementById('targetsValue'),
             min: document.getElementById('minValue'),
             max: document.getElementById('maxValue'),
+            fontSize: document.getElementById('fontSizeValue'),
         };
 
         const urlDisplay = document.getElementById('urlDisplay');
@@ -99,6 +106,7 @@
             valueDisplays.targets.textContent = inputs.targets.value;
             valueDisplays.min.textContent = inputs.min.value;
             valueDisplays.max.textContent = inputs.max.value;
+            valueDisplays.fontSize.textContent = inputs.fontSize.value;
 
             if (parseInt(inputs.max.value) < parseInt(inputs.min.value)) {
                 inputs.max.value = inputs.min.value;
@@ -120,6 +128,7 @@
             if (inputs.gridSize.value !== '15') params.set('gridSize', inputs.gridSize.value);
             if (inputs.min.value !== '6') params.set('min', inputs.min.value);
             if (inputs.max.value !== '12') params.set('max', inputs.max.value);
+            if (inputs.fontSize.value !== '1.7') params.set('fontSize', inputs.fontSize.value);
 
             const queryString = params.toString();
             const previewUrl = queryString ? `${baseUrl}?${queryString}` : baseUrl;
