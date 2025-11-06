@@ -66,21 +66,21 @@ document.addEventListener('fullscreenchange', () => {
 // --- Функции для таймера ---
 
 /**
- * Запускает таймер с точностью до 10 миллисекунд.
+ * Запускает таймер в формате ММ:СС.
  */
 function startTimer() {
     let startTime = Date.now();
-    // Обновляем каждые 10 мс
+    // Обновляем каждые 500 мс для плавности
     timerInterval = setInterval(() => {
         const elapsedTime = Date.now() - startTime;
         
-        const seconds = Math.floor(elapsedTime / 1000);
-        // Миллисекунды (две цифры)
-        const milliseconds = Math.floor((elapsedTime % 1000) / 10); 
+        const totalSeconds = Math.floor(elapsedTime / 1000);
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
 
         timerDisplay.textContent = 
-            `${String(seconds).padStart(2, '0')}:${String(milliseconds).padStart(2, '0')}`;
-    }, 10);
+            `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }, 500);
 }
 
 /**
