@@ -113,4 +113,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Запускаем анимацию
     requestAnimationFrame(animateRotation);
+
+
+    const fullscreenButton = document.getElementById('fullscreen-btn');
+    fullscreenButton.addEventListener('click', () => {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen();
+        } else if (document.exitFullscreen) {
+            document.exitFullscreen();
+        }
+    });
 });
