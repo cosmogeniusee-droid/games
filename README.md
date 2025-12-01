@@ -14,3 +14,6 @@
 
 * [Поиск буквы](/FindChar/index.html)
 * [Поиск буквы (Создание ссылки)](/FindChar/config.html)
+
+* [Вращающийся Рассказ](/CharRotator/index.html)
+* [Вращающийся Рассказ (Создание ссылки)](/CharRotator/config.html)
