@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Нестандартный Пазл Drag & Drop</title>
+    <!-- Tailwind CSS CDN для стилизации --><script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        html,body{
+            height: 100%;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            height: 100vh; 
+            width: 100vw; 
+            margin: 0;
+            overflow: hidden; 
+            /* --- Запрещаем выделение текста на всей странице --- */
+            user-select: none; 
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            /* ----------------------------------------------------------------- */
+        }
+        /* Главный контейнер для центрирования всего содержимого */
+        .full-screen-center {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            width: 100%;
+            padding: 1rem;
+        }
+        #puzzle-container {
+            position: relative;
+            max-width: 80vh; 
+            max-height: 80vh; 
+            aspect-ratio: 1 / 1; 
+            border: 5px solid #3b82f6;
+            background-color: #e2e8f0; 
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            /* Разрешаем отображать части пазла за пределами рамки во время перетаскивания */
+            overflow: visible; 
+        }
+        #puzzle-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: visible; 
+        }
+        .puzzle-piece {
+            cursor: grab;
+            /* Добавляем переход для плавной анимации перемешивания и вращения */
+            transition: transform 0.5s ease-out, stroke 0.2s, filter 0.2s; 
+            stroke: rgba(0,0,0,0.5); 
+            stroke-width: 1px;
+            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2)); 
+            transform-origin: center center; /* Важно для вращения */
+        }
+        .puzzle-piece.dragging {
+            cursor: grabbing;
+            filter: drop-shadow(0 8px 10px rgba(0,0,0,0.4));
+            z-index: 100; 
+            transition: none; /* Отключаем плавный переход во время перетаскивания */
+        }
+        .puzzle-piece.solved {
+            cursor: default;
+            /* Яркое выделение для решенных фрагментов */
+            stroke: #22c55e; /* Tailwind green-500 */
+            stroke-width: 4px;
+            /* Добавляем легкий зеленый оттенок, чтобы было видно, что фрагмент "зафиксирован" */
+            filter: drop-shadow(0 0 5px rgba(34, 197, 94, 0.5)); 
+        }
+        .original-overlay {
+            opacity: 0.3; 
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; 
+            transition: opacity 0.5s;
+        }
+    </style>
+</head>
+<body class="full-screen-center">
+
+    <button id="fullscreen-btn" class="fixed top-4 right-4 bg-white p-2 rounded-full shadow-lg z-50 transition-transform transform hover:scale-110 focus:outline-none">
+        <svg id="fullscreen-icon-open" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-maximize">
+            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+        </svg>
+        <svg id="fullscreen-icon-close" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-minimize hidden">
+            <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path>
+        </svg>
+    </button>
+
+    <div class="max-w-4xl w-full bg-white p-8 rounded-xl shadow-2xl flex flex-col items-center justify-center gap-8">
+        <div>            
+            <!-- Контейнер для SVG-пазла. Размеры будут установлены JS --><div id="puzzle-container" class="mx-auto rounded-lg relative">
+                <svg id="puzzle-svg" viewBox="0 0 700 700" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Здесь будут сгенерированы фрагменты SVG --></svg>
+            </div>
+
+            <!-- Информация и кнопки управления --><div class="text-center mt-6">
+                <!-- ОБНОВЛЕННАЯ ИНСТРУКЦИЯ -->
+                <div id="message" class="text-xl font-semibold h-8 mb-4 text-green-600">
+                    Нажмите **Правую кнопку мыши** (ПКМ) или **Двойное касание** (сенсор) для поворота фрагмента. Нажмите "Начать игру"!
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const IMAGE_URL = urlParams.get('pictureUrl') || "https://picinspire.com/uploads/media/default/0001/07/thumb_6565_default_med.jpg"; 
+        const sizeParam = parseInt(urlParams.get('size'), 10);
+        const GRID_SIZE = (!isNaN(sizeParam) && sizeParam > 1) ? sizeParam : 3; 
+        let PUZZLE_DIMENSION; 
+
+        const puzzleSvg = document.getElementById('puzzle-svg');
+        const messageElement = document.getElementById('message');
+        const puzzleContainer = document.getElementById('puzzle-container');
+
+        // Константы для геометрии и устранения пробелов (bleed margin)
+        const H_LOCAL_FACTOR = 1/8; // 12.5% отступ для заполнения краев (для устранения пробелов)
+        const H_DEPTH_FACTOR = 1/10; // 10% глубина выступов/пазов
+
+        let pieces = []; 
+        let solvedPieces = 0; 
+        let isDragging = false;
+        let activePiece = null;
+        let initialX, initialY, xOffset = 0, yOffset = 0; 
+        let pieceSize; // Размер одного фрагмента
+
+        // Загружаем изображение
+        const img = new Image();
+        img.src = IMAGE_URL;
+        img.onload = () => {
+            calculatePuzzleDimension(); 
+            initializePuzzle();
+        };
+
+        /**
+         * Рассчитывает и устанавливает размер пазла на основе текущего размера окна.
+         */
+        function calculatePuzzleDimension() {
+            const size = Math.min(window.innerWidth, window.innerHeight) * 0.65;            
+            PUZZLE_DIMENSION = Math.max(300, Math.min(size, 1200));
+            pieceSize = PUZZLE_DIMENSION / GRID_SIZE;
+
+            puzzleContainer.style.width = `${PUZZLE_DIMENSION}px`;
+            puzzleContainer.style.height = `${PUZZLE_DIMENSION}px`;
+            puzzleSvg.setAttribute('viewBox', `0 0 ${PUZZLE_DIMENSION} ${PUZZLE_DIMENSION}`);
+        }
+
+        function setTransform(xPos, yPos, rotationDeg, el) {
+            const rotationCenter = 5*((PUZZLE_DIMENSION / GRID_SIZE) * H_LOCAL_FACTOR) - PUZZLE_DIMENSION/2;
+  
+            // Округляем ВСЕ координаты для максимальной стабильности (увеличиваем точность до 4 знаков)
+            const precision = 10000;
+            const roundedXPos = Math.round(xPos * precision) / precision;
+            const roundedYPos = Math.round(yPos * precision) / precision;
+           
+
+            el.setAttribute('transform', 
+                `translate(${roundedXPos},${roundedYPos}) rotate(${rotationDeg}, ${rotationCenter}, ${rotationCenter})`
+            );
+
+            return { x: roundedXPos, y: roundedYPos };
+        }
+
+        /**
+         * Поворачивает фрагмент на 90 градусов (по циклу).
+         */
+        function rotatePiece(pieceElement) {
+            // Запретить вращение, если фрагмент уже решен
+            if (pieceElement.classList.contains('solved')) return;
+
+            const pieceObj = pieces.find(p => p.element === pieceElement);
+            if (!pieceObj) return;
+                // Цикл: 0 -> 1 -> 2 -> 3 -> 0 (0, 90, 180, 270 градусов)
+                pieceObj.rotation = (pieceObj.rotation + 1) % 4; 
+                const rotationDeg = pieceObj.rotation * 90;
+
+                // Применяем transform и сразу же обновляем состояние округленными координатами
+                const { x, y } = setTransform(pieceObj.currentX, pieceObj.currentY, rotationDeg, pieceElement);
+                
+                // Это гарантирует, что следующий поворот или drag начнется с идеально стабильной точки
+                pieceObj.currentX = x;
+                pieceObj.currentY = y;
+        }
+        
+        /**
+         * Генерирует SVG-фрагменты пазла и создает для них уникальные паттерны заливки.
+         */
+        function initializePuzzle() {
+            puzzleSvg.innerHTML = ''; 
+            pieces = [];
+            solvedPieces = 0;
+            // Обновляем текст инструкции
+            messageElement.textContent = "Нажмите Правую кнопку мыши (ПКМ) или Двойное касание (сенсор) для поворота фрагмента. Нажмите 'Начать игру'!";
+            
+            const H_LOCAL = pieceSize * H_LOCAL_FACTOR; // Защитный отступ для контура
+            
+            const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+            puzzleSvg.appendChild(defs);
+
+            for (let i = 0; i < GRID_SIZE * GRID_SIZE; i++) {
+                const row = Math.floor(i / GRID_SIZE);
+                const col = i % GRID_SIZE;
+
+                const x = col * pieceSize;
+                const y = row * pieceSize;
+
+                // 1. Создание pattern для этого фрагмента
+                const patternId = `imgPattern-${i}`;
+                const piecePattern = document.createElementNS("http://www.w3.org/2000/svg", "pattern");
+                piecePattern.setAttribute('id', patternId);
+                piecePattern.setAttribute('patternUnits', 'userSpaceOnUse'); 
+                piecePattern.setAttribute('width', PUZZLE_DIMENSION);
+                piecePattern.setAttribute('height', PUZZLE_DIMENSION);
+                
+                // 2. Смещение и увеличение изображения для устранения пробелов (bleed margin)
+                const pieceImage = document.createElementNS("http://www.w3.org/2000/svg", "image");
+                pieceImage.setAttribute('href', IMAGE_URL);
+                pieceImage.setAttribute('x', -(x)); 
+                pieceImage.setAttribute('y', -(y)); 
+                pieceImage.setAttribute('width', PUZZLE_DIMENSION + 2 * H_LOCAL);
+                pieceImage.setAttribute('height', PUZZLE_DIMENSION + 2 * H_LOCAL);
+
+                piecePattern.appendChild(pieceImage);
+                defs.appendChild(piecePattern);
+                
+                // 3. Создание path 
+                const pathData = generatePuzzlePiecePath(row, col, pieceSize, GRID_SIZE, H_LOCAL);
+                
+                const piece = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                piece.setAttribute('d', pathData);
+                piece.setAttribute('fill', `url(#${patternId})`); 
+                piece.setAttribute('class', 'puzzle-piece');
+                
+                // Изначально фрагменты находятся на своих местах (rotation = 0deg)
+                const { x: initialXPos, y: initialYPos } = setTransform(x - H_LOCAL, y - H_LOCAL, 0, piece);
+                
+                // Сохраняем исходное положение (уже скорректировано на H_LOCAL)
+                piece.dataset.originalX = initialXPos; 
+                piece.dataset.originalY = initialYPos;
+                piece.dataset.index = i;
+                // Дополнительное поле для обнаружения двойного касания
+                piece.lastTapTime = 0; 
+
+                pieces.push({
+                    element: piece,
+                    originalX: initialXPos, 
+                    originalY: initialYPos,
+                    currentX: initialXPos, 
+                    currentY: initialYPos,
+                    rotation: 0, // 0 = 0deg, 1 = 90deg, 2 = 180deg, 3 = 270deg
+                    isSolved: false,
+                });
+
+                // Добавляем обработчики событий
+                piece.addEventListener('mousedown', dragStart);
+                piece.addEventListener('touchstart', dragStart);
+                
+                // !!! УДАЛЕН contextmenu listener с каждой piece, теперь он глобальный на puzzleSvg
+                
+                puzzleSvg.appendChild(piece);
+            }
+        }
+
+        /**
+         * Генерирует SVG path строку для одной плитки пазла с "зубчиками". (Логика без изменений)
+         */
+        function generatePuzzlePiecePath(row, col, pieceSize, gridSize, H_LOCAL) {
+            const T = pieceSize / 3; 
+            const H_DEPTH = pieceSize * H_DEPTH_FACTOR; 
+            
+            let path = `M ${H_LOCAL},${H_LOCAL}`; 
+
+            const T_PROTRUSION = `l ${T} 0 c ${T/4} ${-H_DEPTH} ${T*3/4} ${-H_DEPTH} ${T} 0 l ${T} 0`; 
+            const T_INDENTATION = `l ${T} 0 c ${T/4} ${H_DEPTH} ${T*3/4} ${H_DEPTH} ${T} 0 l ${T} 0`;
+            const R_PROTRUSION = `l 0 ${T} c ${H_DEPTH} ${T/4} ${H_DEPTH} ${T*3/4} 0 ${T} l 0 ${T}`; 
+            const R_INDENTATION = `l 0 ${T} c ${-H_DEPTH} ${T/4} ${-H_DEPTH} ${T*3/4} 0 ${T} l 0 ${T}`; 
+            const B_PROTRUSION = `l ${-T} 0 c ${-T/4} ${H_DEPTH} ${-T*3/4} ${H_DEPTH} ${-T} 0 l ${-T} 0`; 
+            const B_INDENTATION = `l ${-T} 0 c ${-T/4} ${-H_DEPTH} ${-T*3/4} ${-H_DEPTH} ${-T} 0 l ${-T} 0`; 
+            const L_PROTRUSION = `l 0 ${-T} c ${-H_DEPTH} ${-T/4} ${-H_DEPTH} ${-T*3/4} 0 ${-T} l 0 ${-T}`; 
+            const L_INDENTATION = `l 0 ${-T} c ${H_DEPTH} ${-T/4} ${H_DEPTH} ${-T*3/4} 0 ${-T} l 0 ${-T}`; 
+
+            if (row === 0) { path += ` l ${pieceSize},0`; } else { path += (col % 2 === 0) ? T_PROTRUSION : T_INDENTATION; }
+            if (col === gridSize - 1) { path += ` l 0,${pieceSize}`; } else { path += (row % 2 === 0) ? R_PROTRUSION : R_INDENTATION; }
+            if (row === gridSize - 1) { path += ` l ${-pieceSize},0`; } else { path += (col % 2 === 0) ? B_INDENTATION : B_PROTRUSION; }
+            if (col === 0) { path += ` l 0,${-pieceSize}`; } else { path += (row % 2 === 0) ? L_INDENTATION : L_PROTRUSION; }
+
+            path += ` L ${H_LOCAL},${H_LOCAL} Z`; 
+            return path;
+        }
+
+        /**
+         * Перемешивает и случайным образом размещает фрагменты пазла с анимацией.
+         */
+        function shufflePieces() {
+            const usedPositions = new Set();
+            pieces.forEach(p => {
+                let randomX, randomY;
+                let overlap = true;
+                
+                const pieceDim = PUZZLE_DIMENSION / GRID_SIZE; 
+                
+                while(overlap) {
+                    // Увеличиваем диапазон перемешивания
+                    const shuffleRange = PUZZLE_DIMENSION * 1.5; 
+                    randomX = Math.random() * (shuffleRange - pieceDim) - (shuffleRange - PUZZLE_DIMENSION) / 2;
+                    randomY = Math.random() * (shuffleRange - pieceDim) - (shuffleRange - PUZZLE_DIMENSION) / 2;
+                    overlap = false;
+
+                    // Проверяем, не накладывается ли новая позиция на уже использованные
+                    for (let pos of usedPositions) {
+                        if (Math.abs(randomX - pos.x) < pieceDim * 0.8 && Math.abs(randomY - pos.y) < pieceDim * 0.8) {
+                            overlap = true;
+                            break;
+                        }
+                    }
+                }
+                usedPositions.add({x: randomX, y: randomY});
+
+                // Присваиваем случайное вращение: 0, 90, 180 или 270 градусов
+                p.rotation = Math.floor(Math.random() * 4); 
+                const rotationDeg = p.rotation * 90;
+
+                // Применяем transform и сразу же обновляем состояние округленными координатами
+                const { x, y } = setTransform(randomX, randomY, rotationDeg, p.element); 
+                
+                p.currentX = x; // Обновляем текущее положение
+                p.currentY = y;
+                
+                p.isSolved = false;
+                p.element.classList.remove('solved'); 
+            });
+            messageElement.textContent = "Пазл перемешан! Правую кнопку мыши или Двойное касание, чтобы повернуть. Собирайте!";
+        }
+
+        /**
+         * Обработчики Drag & Drop.
+         */
+        function dragStart(e) {
+            if (e.target.classList.contains('solved') || e.target.tagName !== 'path') {
+                return; 
+            }
+            
+            // --- Вращение с помощью ПРАВОЙ КНОТКИ МЫШИ (e.button === 2) ---
+            if (e.type === "mousedown" && e.button === 2) {
+                e.preventDefault(); // Предотвращаем начало перетаскивания
+                rotatePiece(e.target);
+                return;
+            }
+            
+            // --- ОБРАБОТКА ДВОЙНОГО КАСАНИЯ (Touch Double Tap) ---
+            if (e.type === "touchstart") {
+                const touchPiece = e.target;
+                const now = Date.now();
+                const timeSinceLastTap = now - (touchPiece.lastTapTime || 0);
+                
+                // Если двойное касание произошло быстро (менее 300 мс)
+                if (timeSinceLastTap < 300 && timeSinceLastTap > 0) {
+                    e.preventDefault(); // Предотвращаем начало перетаскивания и масштабирование
+                    rotatePiece(touchPiece);
+                    touchPiece.lastTapTime = 0; // Сбрасываем, чтобы избежать тройного касания
+                    return; 
+                }
+                
+                touchPiece.lastTapTime = now; // Запоминаем время первого касания
+            }
+            // --- КОНЕЦ ЛОГИКИ ДВОЙНОГО КАСАНИЯ ---
+
+            // Если это левая кнопка мыши (e.button === 0) или одиночное касание, начинаем drag
+            activePiece = e.target;
+            isDragging = true;
+            activePiece.classList.add('dragging');
+
+            // Перемещаем фрагмент в конец SVG для отображения над остальными
+            puzzleSvg.appendChild(activePiece); 
+
+            // Извлекаем текущие translate координаты из объекта
+            const currentPieceObj = pieces.find(p => p.element === activePiece);
+            if (currentPieceObj) {
+                // currentX/Y уже содержат округленные, стабильные координаты из последнего drag/rotate
+                xOffset = currentPieceObj.currentX;
+                yOffset = currentPieceObj.currentY;
+            }
+
+            if (e.type === "touchstart") {
+                initialX = e.touches[0].clientX;
+                initialY = e.touches[0].clientY;
+            } else {
+                initialX = e.clientX;
+                initialY = e.clientY;
+            }
+        }
+
+        function drag(e) {
+            if (isDragging && activePiece) {
+                e.preventDefault();
+
+                let clientX, clientY;
+                if (e.type === "touchmove") {
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                } else {
+                    clientX = e.clientX;
+                    clientY = e.clientY;
+                }
+                
+                const deltaX = clientX - initialX;
+                const deltaY = clientY - initialY;
+                
+                const svgRect = puzzleSvg.getBoundingClientRect();
+                
+                const currentPieceObj = pieces.find(p => p.element === activePiece);
+                const rotationDeg = currentPieceObj ? currentPieceObj.rotation * 90 : 0;
+
+                // Пересчитываем смещение в координаты SVG
+                const currentX = xOffset + (deltaX * PUZZLE_DIMENSION / svgRect.width);
+                const currentY = yOffset + (deltaY * PUZZLE_DIMENSION / svgRect.height);
+                
+                // setTransform округляет и применяет
+                const { x: newX, y: newY } = setTransform(currentX, currentY, rotationDeg, activePiece);
+                
+                // Обновляем состояние объекта округленными значениями.
+                currentPieceObj.currentX = newX;
+                currentPieceObj.currentY = newY;
+            }
+        }
+
+        function dragEnd(e) {
+            if (isDragging && activePiece) {
+                const snapThreshold = 30; 
+                const currentPieceObj = pieces.find(p => p.element === activePiece);
+                
+                if (currentPieceObj) {
+                    const rotationDeg = currentPieceObj.rotation * 90;
+
+                    // Используем текущие стабильные координаты, которые были установлены в drag()
+                    const finalX = currentPieceObj.currentX; 
+                    const finalY = currentPieceObj.currentY;
+
+                    // Проверяем, находится ли текущая позиция близко к Solved-позиции
+                    const diffX = Math.abs(finalX - currentPieceObj.originalX);
+                    const diffY = Math.abs(finalY - currentPieceObj.originalY);
+
+                    // Условие решения: правильная позиция И нулевое вращение
+                    if (diffX < snapThreshold && diffY < snapThreshold && currentPieceObj.rotation === 0) {
+                        // Защелкиваем фрагмент на место (используем оригинальные, стабильные координаты)
+                        const { x, y } = setTransform(currentPieceObj.originalX, currentPieceObj.originalY, 0, activePiece);
+
+                        // Обновляем текущие координаты объекта (solved position)
+                        currentPieceObj.currentX = x;
+                        currentPieceObj.currentY = y;
+                        currentPieceObj.isSolved = true;
+                        activePiece.classList.add('solved');
+                        solvedPieces++;
+                        messageElement.textContent = `Собрано: ${solvedPieces} из ${pieces.length}`;
+
+                        if (solvedPieces === pieces.length) {
+                            messageElement.textContent = "🎉 Поздравляем! Вы собрали картинку! 🎉";
+                            
+                            // Убираем все фрагменты
+                            puzzleSvg.innerHTML = ''; 
+                        }
+                    } else {
+                        // Если не попал, фиксируем последнее округленное положение как новое текущее
+                        const { x, y } = setTransform(finalX, finalY, rotationDeg, activePiece);
+                        currentPieceObj.currentX = x;
+                        currentPieceObj.currentY = y;
+                    }
+                }
+            }
+            
+            isDragging = false;
+            if (activePiece) {
+                activePiece.classList.remove('dragging');
+            }
+            activePiece = null;
+        }
+
+        // Общие обработчики событий для всего окна для надежного Drag & Drop
+        window.addEventListener('mousemove', drag);
+        window.addEventListener('mouseup', dragEnd);
+        window.addEventListener('touchmove', drag);
+        window.addEventListener('touchend', dragEnd);
+        
+        // --- НОВОЕ ИСПРАВЛЕНИЕ: Предотвращаем появление контекстного меню на всей SVG-области ---
+        window.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+        });
+        // -----------------------------------------------------------------------------------
+
+        calculatePuzzleDimension();
+        initializePuzzle(); 
+        setTimeout(shufflePieces, 100); 
+
+        // --- Fullscreen Logic ---
+        const fullscreenBtn = document.getElementById('fullscreen-btn');
+        const openIcon = document.getElementById('fullscreen-icon-open');
+        const closeIcon = document.getElementById('fullscreen-icon-close');
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement && !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
+                if (document.documentElement.requestFullscreen) {
+                    document.documentElement.requestFullscreen();
+                } else if (document.documentElement.msRequestFullscreen) {
+                    document.documentElement.msRequestFullscreen();
+                } else if (document.documentElement.mozRequestFullScreen) {
+                    document.documentElement.mozRequestFullScreen();
+                } else if (document.documentElement.webkitRequestFullscreen) {
+                    document.documentElement.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    document.mozCancelFullScreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                }
+            }       
+            setTimeout(()=>{
+                calculatePuzzleDimension();
+                initializePuzzle(); 
+                setTimeout(shufflePieces, 100); 
+            }, 100);            
+        }
+
+        fullscreenBtn.addEventListener('click', toggleFullscreen);
+
+        document.addEventListener('fullscreenchange', () => {
+            if (document.fullscreenElement) {
+                openIcon.classList.add('hidden');
+                closeIcon.classList.remove('hidden');
+            } else {
+                openIcon.classList.remove('hidden');
+                closeIcon.classList.add('hidden');
+            }
+        });
+        // --- End Fullscreen Logic ---
+    </script>
+</body>
+</html>
