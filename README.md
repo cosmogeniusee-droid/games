@@ -17,3 +17,6 @@
 
 * [Вращающийся Рассказ](/CharRotator/index.html)
 * [Вращающийся Рассказ (Создание ссылки)](/CharRotator/config.html)
+
+* [Пазл](/Puzzle/index.html)
+* [Пазл (Создание ссылки)](/Puzzle/config.html)
