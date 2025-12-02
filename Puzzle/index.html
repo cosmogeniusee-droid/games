@@ -139,10 +139,6 @@
         // Загружаем изображение
         const img = new Image();
         img.src = IMAGE_URL;
-        img.onload = () => {
-            calculatePuzzleDimension(); 
-            initializePuzzle();
-        };
 
         /**
          * Рассчитывает и устанавливает размер пазла на основе текущего размера окна.
@@ -468,8 +464,8 @@
                         if (solvedPieces === pieces.length) {
                             messageElement.textContent = "🎉 Поздравляем! Вы собрали картинку! 🎉";
                             
-                            // Убираем все фрагменты
-                            puzzleSvg.innerHTML = ''; 
+                            const pieces = puzzleSvg.getElementsByClassName('solved');
+                            Array.from(pieces).forEach(p=>p.classList.remove('solved'));
                         }
                     } else {
                         // Если не попал, фиксируем последнее округленное положение как новое текущее
