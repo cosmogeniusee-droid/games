@@ -1,6 +1,7 @@
 // Переменные для состояния игры
 let currentNumber = 1;
 let currentGridSize = 3;
+let reverseMode = false;
 let gameActive = false;
 let timerInterval;
 let startTime;
@@ -54,7 +55,7 @@ function generateGrid() {
     // Обновление класса сетки и информации
     gridElement.className = ''; // Сброс классов
     gridElement.classList.add(`grid-${currentGridSize}x${currentGridSize}`);
-    totalNumbersSpan.textContent = TOTAL_NUMBERS;
+    totalNumbersSpan.textContent = reverseMode ? `${TOTAL_NUMBERS} до 1` : TOTAL_NUMBERS;
     
     // Создаем массив чисел
     const numbers = Array.from({ length: TOTAL_NUMBERS }, (_, i) => i + 1);
@@ -81,8 +82,9 @@ function handleCellClick(event) {
     const clickedNumber = parseInt(event.target.dataset.number, 10);
     const cell = event.target;
     const TOTAL_NUMBERS = currentGridSize * currentGridSize;
+    const expectedNumber = reverseMode ? (TOTAL_NUMBERS - currentNumber + 1) : currentNumber;
 
-    if (clickedNumber === currentNumber) {
+    if (clickedNumber === expectedNumber) {
         // Правильное нажатие
         correctSound.currentTime = 0; // Сбрасываем звук, чтобы он проигрывался сразу
         correctSound.play().catch(e => console.error("Ошибка проигрывания звука: ", e));
@@ -90,7 +92,7 @@ function handleCellClick(event) {
         cell.classList.add('correct');
         cell.removeEventListener('click', handleCellClick); 
         currentNumber++;
-        currentNumberSpan.textContent = currentNumber;
+        currentNumberSpan.textContent = reverseMode ? (TOTAL_NUMBERS - currentNumber + 1) : currentNumber;
 
         if (currentNumber > TOTAL_NUMBERS) {            
             finishSound.currentTime = 0; // Сбрасываем звук, чтобы он проигрывался сразу
@@ -145,7 +147,8 @@ function startGame() {
     
     stopTimer();
     currentNumber = 1;
-    currentNumberSpan.textContent = currentNumber;
+    const TOTAL_NUMBERS = currentGridSize * currentGridSize;
+    currentNumberSpan.textContent = reverseMode ? TOTAL_NUMBERS : currentNumber;
     timerSpan.textContent = '0.00';
     
     // Удаляем все классы обратной связи и анимацию

@@ -12,7 +12,7 @@
 
     <div class="container game-container text-center">
         <button id="fullscreen-btn" class="btn btn-secondary btn-sm position-absolute top-0 end-0 m-3">🎮</button>
-        <p class="game-instruction">Найдите числа по порядку, от 1 до <span id="total-numbers">9</span>.</p>
+        <p class="game-instruction">Найдите числа по порядку, от <span id="total-numbers">1 до 9</span>.</p>
         
         <div id="game-info" class="d-flex justify-content-around my-3">
             <p><strong>Текущее число:</strong> <span id="current-number">1</span></p>
@@ -32,12 +32,14 @@
     <script src="script.js" type="text/javascript"></script>
     <script>
         window.addEventListener('load', function () {
-            // Получаем параметр size из URL, по умолчанию 5
+            // Получаем параметры из URL
             const urlParams = new URLSearchParams(window.location.search);
             const size = parseInt(urlParams.get('size')) || 5;
+            const reverse = urlParams.get('reverse') === '1';
             
             // Проверяем диапазон (от 3 до 10)
             currentGridSize = Math.max(3, Math.min(10, size));
+            reverseMode = reverse;
             generateGrid();
         })
     </script>

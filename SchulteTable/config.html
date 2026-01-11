@@ -23,6 +23,15 @@
                             <small class="text-muted">Количество ячеек: <span id="totalCells" class="fw-bold">25</span></small>
                         </div>
 
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="reverseOrder">
+                                <label class="form-check-label" for="reverseOrder">
+                                    Обратный порядок (от большего к меньшему)
+                                </label>
+                            </div>
+                        </div>
+
                         <hr>
 
                         <div class="mb-4">
@@ -73,6 +82,10 @@
         const gameLink = document.getElementById('gameLink');
         const copyBtn = document.getElementById('copyBtn');
         const previewFrame = document.getElementById('previewFrame');
+        const reverseOrderCheckbox = document.getElementById('reverseOrder');
+
+        // Обновление при изменении обратного порядка
+        reverseOrderCheckbox.addEventListener('change', updateLink);
 
         // Обновление отображаемых значений
         gridSizeInput.addEventListener('input', function() {
@@ -100,6 +113,10 @@
 
             if (size !== '5') { // 5 - размер по умолчанию
                 params.set('size', size);
+            }
+
+            if (reverseOrderCheckbox.checked) {
+                params.set('reverse', '1');
             }
 
             const url = params.toString() ? `${baseUrl}?${params.toString()}` : baseUrl;
