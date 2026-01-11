@@ -119,10 +119,13 @@
                 params.set('reverse', '1');
             }
 
-            const url = params.toString() ? `${baseUrl}?${params.toString()}` : baseUrl;
-            urlDisplay.value = url;
-            gameLink.href = url;
-            previewFrame.src = url;
+            const queryString = params.toString();
+            const previewUrl = queryString ? `${baseUrl}?${queryString}` : baseUrl;
+            const fullUrl = `https://cosmogeniusee-droid.github.io/games/SchulteTable/${previewUrl}`;
+            
+            urlDisplay.value = fullUrl;
+            gameLink.href = previewUrl;
+            previewFrame.src = previewUrl;
         }
 
         // Копирование ссылки
