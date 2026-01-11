@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Конфигуратор "Квадрат Шульте"</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+</head>
+<body class="bg-light vh-100">
+    <div class="container-fluid h-100 py-4">
+        <h1 class="mb-4 text-center">⚙️ Конфигуратор "Квадрат Шульте"</h1>
+        <div class="row g-4 h-100">
+            <!-- Левая колонка: Настройки -->
+            <div class="col-lg-5 d-flex flex-column">
+                <div class="card flex-grow-1">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">Настройки</h5>
+                        
+                        <div class="mb-3">
+                            <label for="gridSize" class="form-label">Размер сетки: <span id="gridSizeValue" class="fw-bold text-primary">5</span>x<span id="gridSizeValue2" class="fw-bold text-primary">5</span></label>
+                            <input type="range" id="gridSize" class="form-range" value="5" min="3" max="7">
+                            <small class="text-muted">Количество ячеек: <span id="totalCells" class="fw-bold">25</span></small>
+                        </div>
+
+                        <hr>
+
+                        <div class="mb-4">
+                            <h6>Быстрые ссылки:</h6>
+                            <div class="d-flex flex-wrap gap-2">
+                                <button class="btn btn-outline-primary btn-sm" onclick="setSize(3)">3x3</button>
+                                <button class="btn btn-outline-primary btn-sm" onclick="setSize(4)">4x4</button>
+                                <button class="btn btn-outline-primary btn-sm" onclick="setSize(5)">5x5</button>
+                                <button class="btn btn-outline-primary btn-sm" onclick="setSize(6)">6x6</button>
+                                <button class="btn btn-outline-primary btn-sm" onclick="setSize(10)">10x10</button>
+                            </div>
+                        </div>
+
+                        <hr>
+                        <div class="mt-auto">
+                            <div class="mb-3">
+                                <label for="urlDisplay" class="form-label">Сгенерированная ссылка:</label>
+                                <div class="input-group">
+                                    <input type="text" id="urlDisplay" class="form-control" readonly>
+                                    <button class="btn btn-outline-secondary" type="button" id="copyBtn">Копировать</button>
+                                </div>
+                            </div>
+                            <a id="gameLink" href="#" target="_blank" class="btn btn-success w-100">🚀 Открыть игру в новой вкладке</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Правая колонка: Превью -->
+            <div class="col-lg-7 d-flex flex-column">
+                <div class="card flex-grow-1">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">Превью</h5>
+                        <div class="flex-grow-1 border rounded overflow-hidden">
+                            <iframe id="previewFrame" src="" title="Превью игры" class="w-100 h-100 border-0"></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const gridSizeInput = document.getElementById('gridSize');
+        const gridSizeValue = document.getElementById('gridSizeValue');
+        const gridSizeValue2 = document.getElementById('gridSizeValue2');
+        const totalCells = document.getElementById('totalCells');
+        const urlDisplay = document.getElementById('urlDisplay');
+        const gameLink = document.getElementById('gameLink');
+        const copyBtn = document.getElementById('copyBtn');
+        const previewFrame = document.getElementById('previewFrame');
+
+        // Обновление отображаемых значений
+        gridSizeInput.addEventListener('input', function() {
+            const size = (this.value>6) ?10 : this.value; // Преобразование 7 в 10
+            gridSizeValue.textContent = size;
+            gridSizeValue2.textContent = size;
+            totalCells.textContent = size * size;
+            updateLink();
+        });
+
+        // Функция установки размера
+        function setSize(size) {
+            gridSizeInput.value = (size>6) ? 7 : size;
+            gridSizeValue.textContent = size;
+            gridSizeValue2.textContent = size;
+            totalCells.textContent = size * size;
+            updateLink();
+        }
+
+        // Функция генерации ссылки
+        function updateLink() {
+            const baseUrl = 'index.html';
+            const size = (gridSizeInput.value>6) ?10 : gridSizeInput.value; // Преобразование 7 в 10
+            const params = new URLSearchParams();
+
+            if (size !== '5') { // 5 - размер по умолчанию
+                params.set('size', size);
+            }
+
+            const url = params.toString() ? `${baseUrl}?${params.toString()}` : baseUrl;
+            urlDisplay.value = url;
+            gameLink.href = url;
+            previewFrame.src = url;
+        }
+
+        // Копирование ссылки
+        copyBtn.addEventListener('click', function() {
+            urlDisplay.select();
+            document.execCommand('copy');
+            copyBtn.textContent = 'Скопировано!';
+            setTimeout(() => {
+                copyBtn.textContent = 'Копировать';
+            }, 2000);
+        });
+
+        // Инициализация
+        updateLink();
+    </script>
+</body>
+</html>
