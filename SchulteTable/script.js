@@ -7,6 +7,7 @@ let timerInterval;
 let startTime;
 
 // DOM-элементы
+const orderInstructionElement = document.getElementById('order-instruction');
 const gridElement = document.getElementById('schulte-grid');
 const startButton = document.getElementById('start-button');
 const fullscreenButton = document.getElementById('fullscreen-btn'); // Новая кнопка
@@ -56,7 +57,7 @@ function generateGrid() {
     gridElement.className = ''; // Сброс классов
     gridElement.classList.add(`grid-${currentGridSize}x${currentGridSize}`);
     totalNumbersSpan.textContent = reverseMode ? `${TOTAL_NUMBERS} до 1` : TOTAL_NUMBERS;
-    
+    orderInstructionElement.textContent = reverseMode ? 'в обратном порядке' : 'в порядке возрастания';
     // Создаем массив чисел
     const numbers = Array.from({ length: TOTAL_NUMBERS }, (_, i) => i + 1);
     const shuffledNumbers = shuffleArray(numbers);
