@@ -20,6 +20,7 @@ const urlColor = urlParams.get('color');
 const urlBgColor = urlParams.get('bgcolor');
 const urlBg = urlParams.get('bg');
 const urlSize = urlParams.get('size');
+const urlThumbWidth = urlParams.get('thumbwidth');
 
 // --- 2. ГЛОБАЛЬНЫЕ НАСТРОЙКИ ИГРЫ ---
 const highlightColor = urlColor ? `#${urlColor}` : '#1dbd45'; // Цвет для выделения
@@ -96,7 +97,7 @@ lines.forEach((lineText, lineIndex) => {
     
     container.appendChild(wrapper); 
 
-    const THUMB_WIDTH_COMPENSATION = 20; 
+    const THUMB_WIDTH_COMPENSATION = urlThumbWidth ? parseInt(urlThumbWidth) : 20; 
     const textWidth = lineDisplay.offsetWidth;
     
     wrapper.style.width = `${textWidth + THUMB_WIDTH_COMPENSATION}px`;
