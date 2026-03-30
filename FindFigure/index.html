@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Найди Фигуру!</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <h1>🔍 Найди Фигуру! 🔷</h1>
+        
+        <div class="controls">
+            <p class="target-info">
+                Нажми на все: <span id="target-letters-display" class="target-letters"></span>
+            </p>
+            <div class="info-group">
+                <p class="timer-info">
+                    Время: <span id="timer">00:00</span>
+                </p>
+                <p class="score-info">
+                    Осталось найти: <span id="remaining-count">0</span>
+                </p>
+                <p class="error-info">
+                    Ошибки: <span id="error-count">0</span>
+                </p>
+            </div>
+            <div class="buttons-container">
+                <button id="start-button">Начать игру! 🚀</button>
+                <button id="fullscreen-button">На весь экран ↔️</button>
+            </div>
+        </div>
+        
+        <div id="game-board" class="game-board">
+            </div>
+
+        <div id="message-area" class="message-area hidden">
+            </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
