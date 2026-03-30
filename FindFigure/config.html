@@ -79,16 +79,14 @@
 </div>
 <script>
 const SHAPE_KEYS = ['triangle','square','rectangle','circle','rhombus','hexagon','heart','star5','star6','parallelogram','trapezoid','ellipse'];
-const COLOR_KEYS = ['red','orange','yellow','green','blue','purple','pink','brown','gray','cyan','darkblue','lime'];
-const COLORS = {red:'#e74c3c',orange:'#e67e22',yellow:'#f1c40f',green:'#27ae60',blue:'#2980b9',purple:'#8e44ad',pink:'#e91e8b',brown:'#8d6e63',gray:'#7f8c8d',cyan:'#16a085',darkblue:'#1a3c6e',lime:'#8bc34a'};
-
+const COLORS = ['#e74c3c','#e67e22','#f1c40f','#27ae60','#2980b9','#8e44ad','#e91e8b','#8d6e63','#7f8c8d','#16a085','#1a3c6e','#8bc34a'];
 const states = {};
-SHAPE_KEYS.forEach(s => { states[s] = {}; COLOR_KEYS.forEach(c => { states[s][c] = 0; }); });
+SHAPE_KEYS.forEach(s => { states[s] = {}; COLORS.forEach((_,i) => { states[s][i] = 0; }); });
 
 const DEFAULT = [
-    { s:'circle',   c:['red'],      t:[]    },
-    { s:'triangle', c:['yellow'], t:[] },
-    { s:'square',   c:['cyan'],       t:['cyan']   }
+    { s:'circle',   c:[0],  t:[]  },
+    { s:'triangle', c:[2],  t:[]  },
+    { s:'square',   c:[9],  t:[9] }
 ];
 DEFAULT.forEach(fc => { const tSet = new Set(fc.t); fc.c.forEach(col => { states[fc.s][col] = tSet.has(col) ? 2 : 1; }); });
 
@@ -123,13 +121,13 @@ function renderShapeCards(){
         const card=document.createElement('div');card.className='shape-card';
         const preview=document.createElement('div');preview.className='shape-preview';preview.innerHTML=shapeSVG(shape,'gray-preview');
         const swatchRow=document.createElement('div');swatchRow.className='color-swatches';
-        COLOR_KEYS.forEach(color=>{
+        COLORS.forEach((hex,i)=>{
             const sw=document.createElement('div');
-            sw.className='swatch';sw.dataset.state=states[shape][color];
-            sw.innerHTML=shapeSVG(shape,color)+'<span class="swatch-badge">&#x2713;</span>';
+            sw.className='swatch';sw.dataset.state=states[shape][i];
+            sw.innerHTML=shapeSVG(shape,i)+'<span class="swatch-badge">&#x2713;</span>';
             sw.addEventListener('click',()=>{
                 const next=(parseInt(sw.dataset.state)+1)%3;
-                sw.dataset.state=next;states[shape][color]=next;updateLink();
+                sw.dataset.state=next;states[shape][i]=next;updateLink();
             });
             swatchRow.appendChild(sw);
         });
@@ -142,7 +140,7 @@ function buildConfig(){
     const result=[];
     SHAPE_KEYS.forEach(shape=>{
         const available=[],targets=[];
-        COLOR_KEYS.forEach(color=>{const st=states[shape][color];if(st>=1)available.push(color);if(st===2)targets.push(color);});
+        COLORS.forEach((_,i)=>{const st=states[shape][i];if(st>=1)available.push(i);if(st===2)targets.push(i);});
         if(available.length>0)result.push({s:shape,c:available,t:targets});
     });
     return result;
@@ -159,7 +157,7 @@ const previewFrame=document.getElementById('previewFrame');
 function updateLink(){
     if(parseInt(maxOccEl.value)<parseInt(minOccEl.value)){maxOccEl.value=minOccEl.value;document.getElementById('maxVal').textContent=maxOccEl.value;}
     const config=buildConfig(),params=new URLSearchParams();
-    if(config.length>0)params.set('config',encodeURIComponent(JSON.stringify(config)));
+    if(config.length>0)params.set('config',config.map(fc=>`${SHAPE_KEYS.indexOf(fc.s)}-${fc.c.join('_')}-${fc.t.join('_')}`).join('.'));
     if(gridSizeEl.value!=='7')params.set('gridSize',gridSizeEl.value);
     if(minOccEl.value!=='4')params.set('min',minOccEl.value);
     if(maxOccEl.value!=='7')params.set('max',maxOccEl.value);

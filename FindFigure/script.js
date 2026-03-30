@@ -2,26 +2,13 @@
 
 const SHAPE_KEYS = ['triangle','square','rectangle','circle','rhombus','hexagon','heart','star5','star6','parallelogram','trapezoid','ellipse'];
 
-const COLORS = {
-    red:      '#e74c3c',
-    orange:   '#e67e22',
-    yellow:   '#f1c40f',
-    green:    '#27ae60',
-    blue:     '#2980b9',
-    purple:   '#8e44ad',
-    pink:     '#e91e8b',
-    brown:    '#8d6e63',
-    gray:     '#7f8c8d',
-    cyan:     '#16a085',
-    darkblue: '#1a3c6e',
-    lime:     '#8bc34a'
-};
+const COLORS = ['#e74c3c','#e67e22','#f1c40f','#27ae60','#2980b9','#8e44ad','#e91e8b','#8d6e63','#7f8c8d','#16a085','#1a3c6e','#8bc34a'];
 
-// Default: 3 shapes, each with available colors and one target color
+// Default: 3 shapes — indices: 0=red,2=yellow,3=green,4=blue,5=purple,6=pink,9=cyan,11=lime
 const DEFAULT_CONFIG = [
-    { s: 'circle',   c: ['red',  'blue',  'green'],       t: ['red']    },
-    { s: 'triangle', c: ['yellow', 'orange', 'purple'],   t: ['yellow'] },
-    { s: 'square',   c: ['cyan', 'pink',  'lime'],        t: ['cyan']   }
+    { s: 'circle',   c: [0, 4, 3],  t: [0]  },
+    { s: 'triangle', c: [2, 1, 5],  t: [2]  },
+    { s: 'square',   c: [9, 6, 11], t: [9]  }
 ];
 
 // ==================== URL Parameters ====================
@@ -34,8 +21,13 @@ const TOTAL_CELLS = GRID_SIZE * GRID_SIZE;
 
 let figureConfig;
 try {
-    figureConfig = urlParams.get('config')
-        ? JSON.parse(decodeURIComponent(urlParams.get('config')))
+    const raw = urlParams.get('config');
+    figureConfig = raw
+        ? raw.split('.').filter(Boolean).map(seg => {
+            const [si, c, t] = seg.split('-');
+            const s = SHAPE_KEYS[+si];
+            return { s, c: c ? c.split('_').map(Number) : [], t: t ? t.split('_').map(Number) : [] };
+          })
         : DEFAULT_CONFIG;
 } catch (e) {
     figureConfig = DEFAULT_CONFIG;
