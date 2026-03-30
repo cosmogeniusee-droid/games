@@ -199,6 +199,7 @@ function buildTargetHTML() {
 function renderBoard(cells) {
     gameBoard.innerHTML = '';
     gameBoard.style.gridTemplateColumns = `repeat(${GRID_SIZE}, 1fr)`;
+    gameBoard.style.gridTemplateRows    = `repeat(${GRID_SIZE}, 1fr)`;
     cells.forEach((cell, i) => {
         const div = document.createElement('div');
         div.className = 'figure-cell';

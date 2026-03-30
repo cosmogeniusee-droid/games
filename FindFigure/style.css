@@ -1,31 +1,38 @@
 /* Базовые стили для детской стилистики */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
 body {
     background-color: #f7e8a9; /* Яркий, песочный фон */
     color: #333;
     display: flex;
     justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    margin: 0;
-    padding: 20px;
+    align-items: flex-start;
 }
 
 .game-container {
     background-color: #fff;
-    padding: 20px;
-    border-radius: 25px;
+    padding: 8px 15px;
+    border-radius: 0 0 25px 25px;
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
     text-align: center;
-    /* Убираем фиксированную ширину, делаем контейнер адаптивным */
-    max-width: 95vw; 
-    width: 1100px; /* Максимальная ширина для больших экранов */
+    width: min(1100px, 100vw);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    overflow: hidden;
 }
 
 h1 {
     color: #ff6347; /* Ярко-красный */
-    margin-bottom: 10px; /* Уменьшаем отступ */
-    font-size: 2em; /* Уменьшен заголовок */
+    margin: 4px 0;
+    font-size: 1.6em;
     text-shadow: 2px 2px #feca57; /* Тени для объема */
+    flex-shrink: 0;
 }
 
 /* Элементы управления и информация */
@@ -35,12 +42,13 @@ h1 {
     flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
-    gap: 10px;
-    padding: 10px 15px;
-    margin-bottom: 10px;
+    gap: 6px;
+    padding: 6px 12px;
+    margin-bottom: 6px;
     background-color: #a4f5aa; /* Светло-зеленый фон */
     border-radius: 15px;
     border: 3px dashed #3cb371;
+    flex-shrink: 0;
 }
 
 .target-info {
@@ -125,12 +133,14 @@ h1 {
 /* Игровое поле */
 .game-board {
     display: grid;
-    grid-gap: 5px; /* Немного уменьшаем дистанцию для компактности */
+    grid-gap: 5px;
     background-color: #f0f0f0;
     padding: 10px;
     border-radius: 10px;
     border: 2px solid #ccc;
-    min-height: 300px;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
 }
 
 /* Стиль отдельной фигуры */
@@ -142,7 +152,8 @@ h1 {
     justify-content: center;
     align-items: center;
     padding: 4px;
-    aspect-ratio: 1;
+    min-width: 0;
+    min-height: 0;
     cursor: pointer;
     user-select: none;
     transition: transform 0.1s, opacity 0.3s;
