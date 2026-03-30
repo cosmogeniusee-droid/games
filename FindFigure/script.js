@@ -2,21 +2,6 @@
 
 const SHAPE_KEYS = ['triangle','square','rectangle','circle','rhombus','hexagon','heart','star5','star6','parallelogram','trapezoid','ellipse'];
 
-const SHAPE_NAMES = {
-    triangle:      'Треугольник',
-    square:        'Квадрат',
-    rectangle:     'Прямоугольник',
-    circle:        'Круг',
-    rhombus:       'Ромб',
-    hexagon:       'Шестиугольник',
-    heart:         'Сердце',
-    star5:         'Звезда (5)',
-    star6:         'Звезда (6)',
-    parallelogram: 'Параллелограмм',
-    trapezoid:     'Трапеция',
-    ellipse:       'Эллипс'
-};
-
 const COLORS = {
     red:      '#e74c3c',
     orange:   '#e67e22',
@@ -30,21 +15,6 @@ const COLORS = {
     cyan:     '#16a085',
     darkblue: '#1a3c6e',
     lime:     '#8bc34a'
-};
-
-const COLOR_NAMES = {
-    red:      'Красный',
-    orange:   'Оранжевый',
-    yellow:   'Жёлтый',
-    green:    'Зелёный',
-    blue:     'Синий',
-    purple:   'Фиолетовый',
-    pink:     'Розовый',
-    brown:    'Коричневый',
-    gray:     'Серый',
-    cyan:     'Бирюзовый',
-    darkblue: 'Тёмно-синий',
-    lime:     'Салатовый'
 };
 
 // Default: 3 shapes, each with available colors and one target color
@@ -229,12 +199,8 @@ function buildTargetHTML() {
     return targets
         .filter(t => { const k = `${t.shape}:${t.color}`; return seen.has(k) ? false : seen.add(k); })
         .map(t => {
-            const clr  = COLORS[t.color] || '#888';
             const icon = shapeSVG(t.shape, t.color);
-            return `<span class="target-item">` +
-                   `<span class="target-icon">${icon}</span>` +
-                   `<span style="color:${clr};font-weight:bold">${COLOR_NAMES[t.color] || t.color} ${(SHAPE_NAMES[t.shape] || t.shape).toLowerCase()}</span>` +
-                   `</span>`;
+            return `<span class="target-item"><span class="target-icon">${icon}</span></span>`;
         }).join(' ');
 }
 
@@ -247,7 +213,6 @@ function renderBoard(cells) {
         div.innerHTML = shapeSVG(cell.shape, cell.color);
         div.dataset.isTarget = cell.isTarget ? '1' : '0';
         div.dataset.index = i;
-        div.title = `${COLOR_NAMES[cell.color] || cell.color} ${SHAPE_NAMES[cell.shape] || cell.shape}`;
         div.addEventListener('click', handleClick);
         gameBoard.appendChild(div);
     });
