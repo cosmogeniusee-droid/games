@@ -1,0 +1,10 @@
+/* ── Purple / Magic theme ── */
+:root {
+  --bg:            #f5eeff;
+  --card-back-top: #7b35b8;
+  --card-back-bot: #551e85;
+  --card-front:    #ffffff;
+  --accent:        #7b35b8;
+  --text:          #280a4a;
+  --shadow:        rgba(123, 53, 184, 0.35);
+}

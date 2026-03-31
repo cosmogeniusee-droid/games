@@ -1,0 +1,10 @@
+/* ── Sunset theme ── */
+:root {
+  --bg:            #fff5ee;
+  --card-back-top: #e85d20;
+  --card-back-bot: #c03a00;
+  --card-front:    #ffffff;
+  --accent:        #e85d20;
+  --text:          #3a1000;
+  --shadow:        rgba(232, 93, 32, 0.35);
+}

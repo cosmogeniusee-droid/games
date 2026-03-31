@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Конфигуратор «Карточки»</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <!-- Load all theme data files so the picker can display them without fetch() -->
+  <script src="theme_ocean/theme.js"></script>
+  <script src="theme_forest/theme.js"></script>
+  <script src="theme_sunset/theme.js"></script>
+  <script src="theme_purple/theme.js"></script>
+  <script src="theme_candy/theme.js"></script>
+  <script src="theme_classic/theme.js"></script>
+  <script src="themes.js"></script>
+  <style>
+    /* ── Card thumbnails ── */
+    .card-thumb {
+      width: 88px; height: 110px; border-radius: 12px;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      color: #fff; position: relative;
+      background: linear-gradient(145deg, #1e7ec8, #1557a0);
+      box-shadow: 0 4px 12px rgba(0,0,0,.2);
+      user-select: none; flex-shrink: 0;
+    }
+    .card-thumb .ct-emoji  { font-size: 2rem; line-height: 1; }
+    .card-thumb .ct-img    { max-width: 72%; max-height: 62px; object-fit: contain; border-radius: 6px; }
+    .card-thumb .ct-word   { font-size: .65rem; font-weight: 700; margin-top: 4px; text-align: center; padding: 0 4px; word-break: break-word; }
+
+    /* ── Add-card live preview ── */
+    .add-preview-wrap { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .add-preview-label { font-size: .7rem; color: #666; }
+    #addPreviewThumb { pointer-events: none; }
+
+    /* ── Cards list (sortable) ── */
+    .cards-list { display: flex; flex-wrap: wrap; gap: 10px; min-height: 30px; }
+    .card-item  { position: relative; display: inline-flex; flex-direction: column; align-items: center; cursor: grab; }
+    .card-item:active { cursor: grabbing; }
+    .card-item .del-btn {
+      position: absolute; top: -8px; right: -8px;
+      background: #dc3545; color: #fff; border: none;
+      border-radius: 50%; width: 22px; height: 22px;
+      font-size: 13px; line-height: 22px; text-align: center;
+      cursor: pointer; padding: 0; box-shadow: 0 2px 6px rgba(0,0,0,.3);
+    }
+    .card-item .del-btn:hover { background: #bb2d3b; }
+    .card-item .drag-handle {
+      font-size: .75rem; color: #aaa; line-height: 1; margin-top: 2px; user-select: none;
+    }
+    .card-item.drag-over .card-thumb {
+      outline: 3px dashed #0d6efd; outline-offset: 3px;
+    }
+    .card-item.dragging { opacity: .35; }
+
+    /* ── Theme cards ── */
+    .theme-card {
+      width: 136px; border-radius: 16px; color: #fff;
+      padding: 14px 10px 10px; cursor: pointer;
+      border: 3px solid transparent;
+      transition: transform .18s, box-shadow .18s, border-color .18s;
+      text-align: center; position: relative;
+      box-shadow: 0 4px 14px rgba(0,0,0,.22);
+    }
+    .theme-card:hover  { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,.28); }
+    .theme-card.active { border-color: #fff; box-shadow: 0 0 0 4px rgba(0,0,0,.55), 0 6px 20px rgba(0,0,0,.3); }
+    .theme-card.active::after {
+      content: '✓'; position: absolute; top: 6px; right: 10px;
+      font-size: 1rem; font-weight: 800; opacity: .9;
+    }
+    .tc-icon { font-size: 2.2rem; line-height: 1; display: block; }
+    .tc-name { font-weight: 800; font-size: 1rem; margin: 6px 0 4px; display: block; }
+    .tc-badges { display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; }
+    .tc-badge {
+      font-size: .6rem; background: rgba(0,0,0,.28); border-radius: 4px;
+      padding: 2px 5px; line-height: 1.4;
+    }
+
+    /* ── Emoji picker ── */
+    .emoji-btn {
+      width: 100%; height: 38px; font-size: 1.35rem; border-radius: 8px;
+      border: 1px solid #dee2e6; background: #fff; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: border-color .15s, background .15s;
+    }
+    .emoji-btn:hover { border-color: #86b7fe; background: #f0f6ff; }
+    #emojiPicker {
+      display: none; position: fixed; z-index: 9999;
+      background: #fff; border: 1px solid #dee2e6; border-radius: 14px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.18); padding: 10px;
+      width: 320px; max-height: 340px; overflow: hidden;
+    }
+    #emojiPicker.open { display: block; }
+    .ep-search {
+      width: 100%; border: 1px solid #dee2e6; border-radius: 8px;
+      padding: 5px 10px; font-size: .9rem; margin-bottom: 8px; outline: none;
+    }
+    .ep-search:focus { border-color: #86b7fe; }
+    .ep-tabs  { display: flex; gap: 4px; margin-bottom: 6px; flex-wrap: wrap; }
+    .ep-tab   { font-size: .75rem; padding: 3px 8px; border-radius: 6px; border: 1px solid #dee2e6; background: #fff; cursor: pointer; }
+    .ep-tab.active { background: #0d6efd; color: #fff; border-color: #0d6efd; }
+    .ep-grid  { display: flex; flex-wrap: wrap; gap: 2px; max-height: 240px; overflow-y: auto; }
+    .ep-cell  {
+      width: 34px; height: 34px; font-size: 1.25rem;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 6px; cursor: pointer; border: none; background: transparent;
+      transition: background .1s;
+    }
+    .ep-cell:hover { background: #f0f6ff; }
+
+    /* ── Image preview ── */
+    #imgPreview { max-width: 80px; max-height: 70px; border-radius: 8px; display: none; }
+  </style>
+</head>
+<body class="bg-light">
+
+<!-- Floating emoji picker (rendered outside any overflow:hidden container) -->
+<div id="emojiPicker">
+  <input class="ep-search" id="epSearch" type="text" placeholder="Поиск..." autocomplete="off">
+  <div class="ep-tabs" id="epTabs"></div>
+  <div class="ep-grid" id="epGrid"></div>
+</div>
+
+<div class="container-fluid py-3">
+  <h1 class="mb-3 text-center">⚙️ Конфигуратор «Карточки»</h1>
+
+  <div class="row g-3">
+
+    <!-- ══════════ LEFT COLUMN ══════════ -->
+    <div class="col-xl-5 d-flex flex-column gap-3">
+
+      <!-- ── Add card ── -->
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title mb-3">➕ Добавить карточку</h5>
+          <div class="d-flex gap-3 align-items-start">
+
+            <!-- Inputs -->
+            <div class="flex-grow-1 d-flex flex-column gap-2">
+              <div>
+                <label class="form-label small mb-1">Слово / подпись</label>
+                <input id="wordInput" type="text" class="form-control" placeholder="Яблоко">
+              </div>
+              <div class="d-flex gap-2">
+                <div style="flex:0 0 72px; position:relative;">
+                  <label class="form-label small mb-1">Эмодзи</label>
+                  <button type="button" class="emoji-btn" id="emojiBtn" title="Выбрать эмодзи">🍎</button>
+                </div>
+                <div class="flex-grow-1">
+                  <label class="form-label small mb-1">Изображение <span class="text-muted">(заменяет эмодзи)</span></label>
+                  <input id="imageInput" type="file" class="form-control form-control-sm" accept="image/*">
+                </div>
+                <img id="imgPreview" alt="preview" style="align-self:flex-end">
+              </div>
+              <button class="btn btn-primary" onclick="addCard()">Добавить карточку</button>
+            </div>
+
+            <!-- Live preview -->
+            <div class="add-preview-wrap">
+              <div class="add-preview-label">Превью</div>
+              <div class="card-thumb" id="addPreviewThumb">
+                <div class="ct-emoji" id="apEmoji">🍎</div>
+                <div class="ct-word" id="apWord">—</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Theme selector ── -->
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title mb-1">🎨 Тема</h5>
+          <p class="text-muted small mb-3">Каждая тема включает набор цветов и анимаций.</p>
+          <div id="themeGrid" class="d-flex flex-wrap gap-2"></div>
+        </div>
+      </div>
+
+      <!-- ── Cards list ── -->
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="mb-0">🃏 Карточки: <span id="cardCount" class="badge bg-secondary">0</span></h6>
+            <button class="btn btn-outline-danger btn-sm" onclick="clearAll()">🗑 Очистить</button>
+          </div>
+          <p class="text-muted small mb-2" id="dragHint" style="display:none">Перетащите карточки чтобы изменить порядок.</p>
+          <div id="cardsList" class="cards-list"></div>
+        </div>
+      </div>
+
+      <!-- ── Actions ── -->
+      <div class="card shadow-sm">
+        <div class="card-body d-flex flex-column gap-2">
+          <button class="btn btn-success btn-lg" onclick="openGame()">🚀 Открыть игру</button>
+          <button class="btn btn-outline-secondary" onclick="refreshPreview()">👁 Обновить превью</button>
+        </div>
+      </div>
+
+    </div><!-- /left col -->
+
+    <!-- ══════════ RIGHT COLUMN ══════════ -->
+    <div class="col-xl-7">
+      <div class="card shadow-sm" style="height:100%; min-height:500px;">
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title">Превью игры</h5>
+          <div class="flex-grow-1 border rounded overflow-hidden" style="min-height:460px;">
+            <iframe id="previewFrame" src="" title="Превью" class="w-100 h-100 border-0" style="min-height:460px;"></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /row -->
+</div><!-- /container -->
+
+<script>
+'use strict';
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Emoji data
+// ══════════════════════════════════════════════════════════════════════════════
+const EMOJI_CATS = [
+  { id:'animals', label:'🐾 Животные', list:['🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🙈','🙉','🙊','🐔','🐧','🐦','🦆','🦅','🦉','🦇','🐺','🐗','🐴','🦄','🐝','🐛','🦋','🐌','🐞','🐜','🦟','🦗','🕷','🦂','🐢','🐍','🦎','🦖','🦕','🐙','🦑','🦐','🦞','🦀','🐡','🐠','🐟','🐬','🐳','🐋','🦈','🐊','🐅','🐆','🦓','🦍','🦧','🦣','🐘','🦛','🦏','🐪','🐫','🦒','🦘','🦬','🐃','🐂','🐄','🐎','🐖','🐏','🐑','🦙','🐐','🦌','🐕','🐩','🦮','🐈','🐓','🦃','🦤','🦚','🦜','🦢','🦩','🕊','🐇','🦝','🦨','🦡','🦫','🦦','🦥','🐁','🐀','🐿','🦔'] },
+  { id:'food',    label:'🍕 Еда',      list:['🍏','🍎','🍐','🍊','🍋','🍌','🍉','🍇','🍓','🫐','🍈','🍒','🍑','🥭','🍍','🥥','🥝','🍅','🍆','🥑','🥦','🥬','🥒','🌶','🫑','🧄','🧅','🥔','🍠','🥐','🥖','🍞','🥨','🥯','🧀','🥚','🍳','🧈','🥞','🧇','🥓','🥩','🍗','🍖','🌭','🍔','🍟','🍕','🫓','🥪','🥙','🧆','🌮','🌯','🫔','🥗','🥘','🫕','🥫','🍝','🍜','🍲','🍛','🍣','🍱','🥟','🦪','🍤','🍙','🍚','🍘','🍥','🥮','🍢','🧁','🍰','🎂','🍮','🍭','🍬','🍫','🍿','🍩','🍪','🌰','🥜','🍯','🧃','🥤','🧋','☕','🍵','🧉','🍶','🍺','🥂','🍷','🥃','🍸','🍹','🧊'] },
+  { id:'nature',  label:'🌿 Природа',  list:['🌸','🌺','🌻','🌹','🌷','🌼','💐','🌾','🍀','🍁','🍂','🍃','🍄','🌿','☘','🪴','🌵','🌴','🌲','🌳','🌱','🌍','🌎','🌏','🌙','⭐','🌟','💫','✨','☀️','🌤','⛅','🌥','🌦','🌧','⛈','🌩','🌨','❄','🌬','💨','🌪','🌫','🌈','☂','⛱','⚡','🔥','💧','🌊','🪨','🪵','🌋','🏔','⛰','🗻','🏕','🏖','🏜','🏝','🌅','🌄','🌠','🎑','🏞','🌉','🌃','🌆','🌇','🌁'] },
+  { id:'travel',  label:'✈️ Транспорт',list:['🚗','🚕','🚙','🚌','🚎','🏎','🚓','🚑','🚒','🚐','🛻','🚚','🚛','🚜','🛵','🏍','🛺','🚲','🛴','🛹','🛼','🚏','🛣','🛤','⛽','🚨','🚥','🚦','🚧','🛑','⚓','🛟','⛵','🚤','🛥','🛳','⛴','🚢','✈','🛩','🛫','🛬','🛰','🚀','🛸','🚁','🛶','🚂','🚃','🚄','🚅','🚆','🚇','🚈','🚉','🚊','🚝','🚞','🚋'] },
+  { id:'sports',  label:'⚽ Спорт',    list:['⚽','🏀','🏈','⚾','🥎','🎾','🏐','🏉','🥏','🎱','🏓','🏸','🏒','🥍','🏏','⛳','🥊','🥋','🎿','🛷','🥌','🎯','🏹','🎣','🤿','🎽','🎪','🤸','🤼','🤺','🤾','🏌','🏇','⛷','🏂','🏋','🚵','🚴','🥇','🥈','🥉','🏅','🎖','🏆','🎗','🎫','🎟','🎪','🤹','🎭','🎬','🎤','🎧','🎼','🎹','🥁','🪘','🎷','🎺','🪗','🎸','🪕','🎻'] },
+  { id:'objects', label:'🏠 Предметы', list:['🏠','🏡','🏢','🏣','🏤','🏥','🏦','🏨','🏩','🏪','🏫','🏬','🏭','🏯','🏰','💒','🗼','🗽','⛪','🕌','🛕','🕍','⛩','📷','📸','📹','🎥','📽','🎞','📞','☎','📟','📠','📺','📻','🧭','⏱','⏲','⏰','🕰','⌛','⏳','📡','🔋','🔌','💡','🔦','🕯','💰','💳','💎','⚖','🔧','🔨','⚒','🛠','⛏','🔩','🪛','🔪','🗡','⚔','🛡','🪃','🏹','🧲','🪜','🧱','🪞','🚪','🛏','🛋','🪑','🚽','🪥','🚿','🛁','🧴','🧷','🧹','🧺','🧻','🧼','🫧','🧽','🛒','🎁','🎀','🎊','🎉'] },
+  { id:'symbols', label:'❤️ Символы',  list:['❤','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❣','💕','💞','💓','💗','💖','💘','💝','💟','☮','✝','☪','🕉','✡','🔯','🛐','♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓','❌','⭕','🛑','⛔','📛','🚫','💯','💢','♨','❗','❕','❓','❔','‼','⁉','🔅','🔆','🔱','⚜','🔰','♻','✅','💹','❎','🌐','💠','🌀','💤','♿','🎦','📶','🔤','🔡','🔢','🔀','🔁','🔂','⏭','⏩','⏯','▶','⏸','⏹','⏺','⏮','⏪','⬆','🔼','➡','⬅','⬇','🔽','↗','↘','↙','↖','↕','↔','↩','↪','⤴','⤵','🔃','🔄','🔙','🔚','🔛','🔜','🔝'] },
+  { id:'faces',   label:'😀 Лица',     list:['😀','😃','😄','😁','😆','😅','🤣','😂','🙂','🙃','😉','😊','😇','🥰','😍','🤩','😘','😗','☺','😚','😙','🥲','😋','😛','😜','🤪','😝','🤑','🤗','🤭','🤫','🤔','🤐','🤨','😐','😑','😶','😏','😒','🙄','😬','🤥','😌','😔','😪','🤤','😴','😷','🤒','🤕','🤢','🤮','🤧','🥵','🥶','🥴','😵','🤯','🤠','🥳','🥸','😎','🤓','🧐','😕','😟','🙁','☹','😮','😯','😲','😳','🥺','😦','😧','😨','😰','😥','😢','😭','😱','😖','😣','😞','😓','😩','😫','🥱','😤','😡','😠','🤬','😈','👿','💀','☠','💩','🤡','👹','👺','👻','👽','👾','🤖','😺','😸','😹','😻','😼','😽','🙀','😿','😾'] },
+];
+
+// Themes are loaded from window.CARDS_THEMES via theme_{id}/theme.js scripts
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Config state
+// ══════════════════════════════════════════════════════════════════════════════
+function defaultConfig() {
+  return {
+    cards: [
+      { word: 'Яблоко', emoji: '🍎', image: null },
+      { word: 'Кот',    emoji: '🐱', image: null },
+      { word: 'Собака', emoji: '🐶', image: null },
+      { word: 'Солнце', emoji: '☀️', image: null },
+    ],
+    theme: 'ocean',
+  };
+}
+
+let config = (() => {
+  try { const r = localStorage.getItem('cards-game-config'); if (r) return JSON.parse(r); } catch(_) {}
+  return defaultConfig();
+})();
+
+let pendingImage  = null;
+let selectedEmoji = '🍎';
+
+function save() { localStorage.setItem('cards-game-config', JSON.stringify(config)); }
+
+// ── Image resizer ─────────────────────────────────────────────────────────────
+function resizeImage(file, maxPx, quality, cb) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      let w = img.width, h = img.height;
+      if (w > maxPx || h > maxPx) {
+        if (w > h) { h = Math.round(h * maxPx / w); w = maxPx; }
+        else       { w = Math.round(w * maxPx / h); h = maxPx; }
+      }
+      const c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      c.getContext('2d').drawImage(img, 0, 0, w, h);
+      cb(c.toDataURL('image/jpeg', quality));
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+// ── Current theme helpers ─────────────────────────────────────────────────────
+function getTheme() {
+  const themes = window.CARDS_THEMES || {};
+  const ids    = window.CARDS_THEME_IDS || [];
+  return themes[config.theme] || themes[ids[0]] || { grad: 'linear-gradient(145deg,#1e7ec8,#1557a0)' };
+}
+function getThemeGrad() { return getTheme().grad; }
+
+// ── Render: theme grid ────────────────────────────────────────────────────────
+function renderThemes() {
+  const grid   = document.getElementById('themeGrid');
+  const themes = window.CARDS_THEMES  || {};
+  const ids    = window.CARDS_THEME_IDS || [];
+  grid.innerHTML = '';
+  ids.forEach(id => {
+    const t = themes[id];
+    if (!t) return;
+    const card = document.createElement('div');
+    card.className = 'theme-card' + (config.theme === t.id ? ' active' : '');
+    card.style.background = t.grad;
+    card.innerHTML = `
+      <span class="tc-icon">${t.icon}</span>
+      <span class="tc-name">${t.name}</span>
+      <div class="tc-badges">${t.badges.map(b => `<span class="tc-badge">${b}</span>`).join('')}</div>
+    `;
+    card.onclick = () => {
+      config.theme = t.id;
+      save();
+      renderThemes();
+      renderCards();
+      updateAddPreview();
+      autoPreview();
+    };
+    grid.appendChild(card);
+  });
+}
+
+// ── Render: cards list (with drag-and-drop) ───────────────────────────────────
+let dragSrcIdx = null;
+
+function renderCards() {
+  const cont = document.getElementById('cardsList');
+  cont.innerHTML = '';
+  const count = config.cards.length;
+  document.getElementById('cardCount').textContent = count;
+  document.getElementById('dragHint').style.display = count > 1 ? '' : 'none';
+  const grad = getThemeGrad();
+
+  config.cards.forEach((card, i) => {
+    const item = document.createElement('div');
+    item.className = 'card-item';
+    item.draggable = true;
+    item.dataset.idx = i;
+
+    const thumb = document.createElement('div');
+    thumb.className = 'card-thumb';
+    thumb.style.background = grad;
+
+    if (card.image) {
+      const img = document.createElement('img');
+      img.className = 'ct-img'; img.src = card.image; img.alt = card.word;
+      thumb.appendChild(img);
+    } else {
+      const em = document.createElement('div');
+      em.className = 'ct-emoji'; em.textContent = card.emoji || '❓';
+      thumb.appendChild(em);
+    }
+    const wd = document.createElement('div');
+    wd.className = 'ct-word'; wd.textContent = card.word;
+    thumb.appendChild(wd);
+
+    const del = document.createElement('button');
+    del.className = 'del-btn'; del.title = 'Удалить'; del.innerHTML = '×';
+    del.onclick = e => { e.stopPropagation(); config.cards.splice(i, 1); save(); renderCards(); autoPreview(); };
+
+    const handle = document.createElement('div');
+    handle.className = 'drag-handle'; handle.textContent = '⠿';
+
+    item.appendChild(thumb);
+    item.appendChild(del);
+    item.appendChild(handle);
+
+    // ── Drag events ──
+    item.addEventListener('dragstart', e => {
+      dragSrcIdx = i;
+      e.dataTransfer.effectAllowed = 'move';
+      requestAnimationFrame(() => item.classList.add('dragging'));
+    });
+    item.addEventListener('dragend', () => {
+      item.classList.remove('dragging');
+      document.querySelectorAll('.card-item').forEach(el => el.classList.remove('drag-over'));
+    });
+    item.addEventListener('dragover', e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      document.querySelectorAll('.card-item').forEach(el => el.classList.remove('drag-over'));
+      if (dragSrcIdx !== i) item.classList.add('drag-over');
+    });
+    item.addEventListener('drop', e => {
+      e.preventDefault();
+      if (dragSrcIdx === null || dragSrcIdx === i) return;
+      const moved = config.cards.splice(dragSrcIdx, 1)[0];
+      config.cards.splice(i, 0, moved);
+      dragSrcIdx = null;
+      save();
+      renderCards();
+      autoPreview();
+    });
+
+    cont.appendChild(item);
+  });
+}
+
+// ── Live add-card preview ─────────────────────────────────────────────────────
+function updateAddPreview() {
+  const word  = document.getElementById('wordInput').value.trim() || '—';
+  const thumb = document.getElementById('addPreviewThumb');
+  thumb.style.background = getThemeGrad();
+
+  const emojiEl = document.getElementById('apEmoji');
+  const wordEl  = document.getElementById('apWord');
+  const imgEl   = thumb.querySelector('.ap-img');
+
+  if (pendingImage) {
+    if (!imgEl) {
+      emojiEl.style.display = 'none';
+      const img = document.createElement('img');
+      img.className = 'ct-img ap-img'; img.src = pendingImage; img.alt = '';
+      thumb.insertBefore(img, wordEl);
+    } else {
+      imgEl.src = pendingImage;
+    }
+  } else {
+    if (imgEl) imgEl.remove();
+    emojiEl.style.display = '';
+    emojiEl.textContent = selectedEmoji;
+  }
+  wordEl.textContent = word;
+}
+
+// ── Add card ──────────────────────────────────────────────────────────────────
+function addCard() {
+  const word = document.getElementById('wordInput').value.trim();
+  if (!word) { document.getElementById('wordInput').focus(); return; }
+
+  config.cards.push({ word, emoji: selectedEmoji, image: pendingImage || null });
+  save();
+
+  document.getElementById('wordInput').value  = '';
+  document.getElementById('imageInput').value = '';
+  document.getElementById('imgPreview').style.display = 'none';
+  pendingImage = null;
+
+  // Reset preview image layer
+  const thumb  = document.getElementById('addPreviewThumb');
+  const imgEl  = thumb.querySelector('.ap-img');
+  if (imgEl) imgEl.remove();
+  document.getElementById('apEmoji').style.display = '';
+  updateAddPreview();
+
+  renderCards();
+  autoPreview();
+  document.getElementById('wordInput').focus();
+}
+
+function clearAll() {
+  if (!confirm('Удалить все карточки?')) return;
+  config.cards = [];
+  save(); renderCards(); autoPreview();
+}
+
+// ── Game preview iframe ───────────────────────────────────────────────────────
+let previewTimer = null;
+function autoPreview() {
+  clearTimeout(previewTimer);
+  previewTimer = setTimeout(refreshPreview, 350);
+}
+function refreshPreview() {
+  save();
+  document.getElementById('previewFrame').src = 'index.html?_t=' + Date.now();
+}
+function openGame() {
+  save();
+  window.open('index.html', '_blank');
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Emoji picker
+// ══════════════════════════════════════════════════════════════════════════════
+let currentCatId = EMOJI_CATS[0].id;
+
+function initEmojiPicker() {
+  const btn    = document.getElementById('emojiBtn');
+  const picker = document.getElementById('emojiPicker');
+  const search = document.getElementById('epSearch');
+  const tabs   = document.getElementById('epTabs');
+  const grid   = document.getElementById('epGrid');
+
+  EMOJI_CATS.forEach(cat => {
+    const t = document.createElement('button');
+    t.type = 'button';
+    t.className = 'ep-tab' + (cat.id === currentCatId ? ' active' : '');
+    t.textContent = cat.label;
+    t.onclick = () => {
+      currentCatId = cat.id;
+      search.value = '';
+      document.querySelectorAll('.ep-tab').forEach(el => el.classList.remove('active'));
+      t.classList.add('active');
+      renderGrid('');
+    };
+    tabs.appendChild(t);
+  });
+
+  function renderGrid(query) {
+    grid.innerHTML = '';
+    const q = query.trim().toLowerCase();
+    let list = q
+      ? EMOJI_CATS.flatMap(c => c.list).filter((e, i, a) => a.indexOf(e) === i).slice(0, 200)
+      : (EMOJI_CATS.find(c => c.id === currentCatId) || EMOJI_CATS[0]).list;
+
+    list.forEach(emoji => {
+      const cell = document.createElement('button');
+      cell.type = 'button'; cell.className = 'ep-cell';
+      cell.textContent = emoji; cell.title = emoji;
+      cell.onclick = () => {
+        selectedEmoji = emoji;
+        btn.textContent = emoji;
+        picker.classList.remove('open');
+        updateAddPreview();
+      };
+      grid.appendChild(cell);
+    });
+  }
+
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    if (!picker.classList.contains('open')) {
+      const r = btn.getBoundingClientRect();
+      picker.style.top  = (r.bottom + 4) + 'px';
+      picker.style.left = Math.min(r.left, window.innerWidth - 330) + 'px';
+    }
+    picker.classList.toggle('open');
+    if (picker.classList.contains('open')) { search.value = ''; renderGrid(''); setTimeout(() => search.focus(), 50); }
+  });
+
+  search.addEventListener('input', () => renderGrid(search.value));
+  document.addEventListener('click', e => {
+    if (!picker.contains(e.target) && e.target !== btn) picker.classList.remove('open');
+  });
+  search.addEventListener('keydown', e => { if (e.key === 'Escape') picker.classList.remove('open'); });
+
+  renderGrid('');
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Boot
+// ══════════════════════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('wordInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') addCard();
+  });
+  document.getElementById('wordInput').addEventListener('input', updateAddPreview);
+
+  document.getElementById('imageInput').addEventListener('change', function() {
+    const file = this.files[0];
+    if (!file) return;
+    resizeImage(file, 300, 0.82, dataUrl => {
+      pendingImage = dataUrl;
+      const preview = document.getElementById('imgPreview');
+      preview.src = dataUrl; preview.style.display = 'block';
+      updateAddPreview();
+    });
+  });
+
+  initEmojiPicker();
+  renderThemes();
+  renderCards();
+  updateAddPreview();
+  autoPreview();
+});
+</script>
+</body>
+</html>

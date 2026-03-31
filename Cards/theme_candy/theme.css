@@ -1,0 +1,10 @@
+/* ── Candy theme ── */
+:root {
+  --bg:            #fff0f8;
+  --card-back-top: #d81b8a;
+  --card-back-bot: #a00060;
+  --card-front:    #ffffff;
+  --accent:        #d81b8a;
+  --text:          #44002a;
+  --shadow:        rgba(216, 27, 138, 0.35);
+}

@@ -1,0 +1,10 @@
+/* ── Forest theme ── */
+:root {
+  --bg:            #eaf6ea;
+  --card-back-top: #348a42;
+  --card-back-bot: #1f5a2a;
+  --card-front:    #ffffff;
+  --accent:        #348a42;
+  --text:          #143518;
+  --shadow:        rgba(52, 138, 66, 0.35);
+}

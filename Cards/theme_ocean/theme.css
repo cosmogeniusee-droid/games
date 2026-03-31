@@ -1,0 +1,10 @@
+/* ── Ocean theme ── */
+:root {
+  --bg:            #e8f4fd;
+  --card-back-top: #1e7ec8;
+  --card-back-bot: #1557a0;
+  --card-front:    #ffffff;
+  --accent:        #1e7ec8;
+  --text:          #0a2d4a;
+  --shadow:        rgba(30, 126, 200, 0.35);
+}

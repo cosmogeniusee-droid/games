@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Карточки</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Theme CSS: set early by inline script to avoid flash -->
+  <link rel="stylesheet" href="theme_ocean/theme.css" id="theme-css">
+  <script>
+    (function () {
+      try {
+        var cfg = JSON.parse(localStorage.getItem('cards-game-config') || '{}');
+        if (cfg.theme) document.getElementById('theme-css').href = 'theme_' + cfg.theme + '/theme.css';
+      } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+
+  <div id="finish-overlay"></div>
+
+  <div class="game-header">
+    <div class="game-title">🃏 Карточки</div>
+    <div class="timer-display">⏱ <span id="timerEl">0.0</span> с</div>
+    <div class="progress-text">Открыто: <span id="openedCount">0</span> / <span id="totalCount">0</span></div>
+  </div>
+
+  <div id="cardsGrid" class="cards-grid"></div>
+
+  <div class="game-controls">
+    <button class="btn-restart" onclick="restartGame()">🔄 Заново</button>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
