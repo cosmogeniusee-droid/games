@@ -6,7 +6,8 @@
   --card-back-image:  url('theme_space/card-back.png');
   --card-front:       #1a1040;
   --accent:           #a78bfa;
-  --text:             #e0d4ff;
+  --text:             #cbbbf3;
+  --text-bg:          rgba(38, 24, 194, 0.85);
   --shadow:           rgba(167, 139, 250, 0.4);
 }
 

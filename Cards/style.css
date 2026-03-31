@@ -11,6 +11,7 @@
   --card-front:       #ffffff;
   --accent:           #1e7ec8;
   --text:             #0a2d4a;
+  --text-bg:          rgba(255,255,255,0.85);
   --shadow:           rgba(30, 126, 200, 0.35);
 }
 
@@ -51,7 +52,7 @@ body.memo-mode {
   padding: 5px 24px;
   border-radius: 50px;
   border: 2px solid var(--accent);
-  background: rgba(255,255,255,0.85);
+  background: var(--text-bg);
   color: var(--text);
 }
 .progress-text {
