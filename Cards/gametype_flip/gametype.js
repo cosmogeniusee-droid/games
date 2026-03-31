@@ -56,15 +56,17 @@ window.CARDS_GAME_ENGINE['flip'] = (function () {
       // Fill available vertical space, maintain aspect ratio 4:3 (h:w)
       const headerH = document.querySelector('.game-header')?.offsetHeight || 0;
       const controlsH = document.querySelector('.game-controls')?.offsetHeight || 0;
-      const availH = window.innerHeight - headerH - controlsH - 80;
+      const availH = window.innerHeight - headerH - controlsH - 140;
       const availW = Math.floor((grid.clientWidth || window.innerWidth) / 2) - 60;
-      // 2 piles side by side, gap 80px, some margin
+      console.log('Layout', { availW, availH });
       const CARD_RATIO = 420 / 320;
-      let cardW = Math.min(420, availW);
+      let cardW = availW;
       let cardH = cardW * CARD_RATIO;
+       console.log('Size 1', { cardW, cardH });
       if (cardH > availH) {
         cardH = availH;
         cardW = cardH / CARD_RATIO;
+       console.log('Size 2', { cardW, cardH });
       }
       grid.style.setProperty('--flip-card-w', Math.floor(cardW) + 'px');
       grid.style.setProperty('--flip-card-h', Math.floor(cardH) + 'px');
