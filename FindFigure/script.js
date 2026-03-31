@@ -2,7 +2,7 @@
 
 const SHAPE_KEYS = ['triangle','square','rectangle','circle','rhombus','hexagon','heart','star5','star6','parallelogram','trapezoid','ellipse'];
 
-const COLORS = ['#e74c3c','#e67e22','#f1c40f','#27ae60','#2980b9','#8e44ad','#e91e8b','#8d6e63','#7f8c8d','#16a085','#1a3c6e','#8bc34a'];
+const COLORS = ['#4251f5', '#f22225', '#f2f222','#03a806','#f52fc7','#8e2ff5','#f5812f','#42f5e3'];
 
 // Default: 3 shapes — indices: 0=red,2=yellow,3=green,4=blue,5=purple,6=pink,9=cyan,11=lime
 const DEFAULT_CONFIG = [
