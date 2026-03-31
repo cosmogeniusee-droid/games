@@ -1,0 +1,22 @@
+/* ── Space theme ── */
+:root {
+  --bg:               #0a0a1a;
+  --card-back-top:    #1a1a3a;
+  --card-back-bot:    #0d0d25;
+  --card-back-image:  url('theme_space/card-back.png');
+  --card-front:       #1a1040;
+  --accent:           #a78bfa;
+  --text:             #e0d4ff;
+  --shadow:           rgba(167, 139, 250, 0.4);
+}
+
+body {
+  background-color: #0a0a1a;
+  background-image: url('bg.png');
+  background-size: cover;
+  background-attachment: fixed;
+  background-position: center;
+}
+
+/* Front face text contrast */
+.card-word { color: var(--text); border-top-color: rgba(167,139,250,0.2); }

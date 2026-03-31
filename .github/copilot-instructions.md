@@ -2,7 +2,7 @@
 
 ## Do not show thinking process
 
-When generating code, do not show your thinking process or reasoning steps. Only provide the final code output.
+Do not show your thinking process or reasoning steps. Only provide the final code output.
 
 ## File Encoding
 

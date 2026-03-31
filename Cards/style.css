@@ -4,13 +4,14 @@
 
 /* ── CSS Custom Properties (default = ocean) ── */
 :root {
-  --bg:            #e8f4fd;
-  --card-back-top: #1e7ec8;
-  --card-back-bot: #1557a0;
-  --card-front:    #ffffff;
-  --accent:        #1e7ec8;
-  --text:          #0a2d4a;
-  --shadow:        rgba(30, 126, 200, 0.35);
+  --bg:               #e8f4fd;
+  --card-back-top:    #1e7ec8;
+  --card-back-bot:    #1557a0;
+  --card-back-image:  none;   /* themes can set url('card-back.png') */
+  --card-front:       #ffffff;
+  --accent:           #1e7ec8;
+  --text:             #0a2d4a;
+  --shadow:           rgba(30, 126, 200, 0.35);
 }
 
 /* ── Base ── */
@@ -133,6 +134,9 @@ body {
 /* Back face */
 .card-back {
   background: linear-gradient(145deg, var(--card-back-top), var(--card-back-bot));
+  background-image: var(--card-back-image);
+  background-size: cover;
+  background-position: center;
 }
 .card-back-dots {
   position: absolute;
@@ -298,6 +302,9 @@ body {
 }
 .dl-back {
   background: linear-gradient(145deg, var(--card-back-top), var(--card-back-bot));
+  background-image: var(--card-back-image);
+  background-size: cover;
+  background-position: center;
 }
 .dl-front {
   background: var(--card-front);
@@ -362,6 +369,9 @@ body {
 }
 .dl-flying-face.dl-back {
   background: linear-gradient(145deg, var(--card-back-top), var(--card-back-bot));
+  background-image: var(--card-back-image);
+  background-size: cover;
+  background-position: center;
 }
 .dl-flying-face.dl-front {
   background: var(--card-front);

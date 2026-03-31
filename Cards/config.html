@@ -10,6 +10,7 @@
   <script src="theme_sunset/theme.js"></script>
   <script src="theme_purple/theme.js"></script>
   <script src="theme_classic/theme.js"></script>
+  <script src="theme_space/theme.js"></script>
   <script src="themes.js"></script>
   <script src="gametypes.js"></script>
   <style>
@@ -109,6 +110,19 @@
 
     /* ── Image preview ── */
     #imgPreview { max-width: 80px; max-height: 70px; border-radius: 8px; display: none; }
+
+    /* ── Preview fullscreen ── */
+    #previewWrap:fullscreen,
+    #previewWrap:-webkit-full-screen {
+      padding: 0;
+      background: #000;
+    }
+    #previewWrap:fullscreen #previewFrame,
+    #previewWrap:-webkit-full-screen #previewFrame {
+      min-height: 100vh;
+      width: 100%;
+      height: 100%;
+    }
 
     /* ── Game type cards ── */
     .gametype-card {
@@ -229,8 +243,11 @@
     <div class="col-xl-7">
       <div class="card shadow-sm" style="height:100%; min-height:500px;">
         <div class="card-body d-flex flex-column">
-          <h5 class="card-title">Превью игры</h5>
-          <div class="flex-grow-1 border rounded overflow-hidden" style="min-height:460px;">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="card-title mb-0">Превью игры</h5>
+            <button class="btn btn-outline-secondary btn-sm" onclick="toggleFullscreen()" id="fsBtn" title="Полноэкранный режим">⛶ Полный экран</button>
+          </div>
+          <div class="flex-grow-1 border rounded overflow-hidden" id="previewWrap" style="min-height:460px;">
             <iframe id="previewFrame" src="" title="Превью" class="w-100 h-100 border-0" style="min-height:460px;"></iframe>
           </div>
         </div>
@@ -504,6 +521,24 @@ function openGame() {
   save();
   window.open('index.html', '_blank');
 }
+function toggleFullscreen() {
+  const wrap = document.getElementById('previewWrap');
+  if (!document.fullscreenElement) {
+    wrap.requestFullscreen().catch(() => {});
+  } else {
+    document.exitFullscreen();
+  }
+}
+document.addEventListener('fullscreenchange', () => {
+  const btn = document.getElementById('fsBtn');
+  if (document.fullscreenElement) {
+    btn.textContent = '✕ Выйти';
+    btn.classList.replace('btn-outline-secondary', 'btn-outline-danger');
+  } else {
+    btn.textContent = '⛶ Полный экран';
+    btn.classList.replace('btn-outline-danger', 'btn-outline-secondary');
+  }
+});
 
 // ══════════════════════════════════════════════════════════════════════════════
 // Emoji picker
