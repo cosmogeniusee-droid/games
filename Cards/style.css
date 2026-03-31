@@ -71,8 +71,8 @@ body {
 /* ── Card Wrapper ── */
 .card-wrapper {
   perspective: 1200px;
-  width: 160px;
-  height: 210px;
+  width: 320px;
+  height: 420px;
   cursor: pointer;
 }
 
@@ -183,25 +183,25 @@ body {
   width: 100%;
 }
 .card-emoji {
-  font-size: 4.8rem;
+  font-size: 9.6rem;
   line-height: 1;
   user-select: none;
 }
 .card-img {
   max-width: 92%;
-  max-height: 130px;
+  max-height: 260px;
   object-fit: contain;
   border-radius: 8px;
 }
 .card-word {
-  font-size: 1rem;
+  font-size: 2rem;
   font-weight: 700;
   text-align: center;
   color: var(--text);
   word-break: break-word;
   line-height: 1.2;
   width: 100%;
-  padding: 5px 4px 3px;
+  padding: 10px 8px 6px;
   border-top: 1px solid rgba(0,0,0,0.08);
 }
 
@@ -292,8 +292,8 @@ body {
   opacity: .5;
 }
 .dl-pile {
-  width: 160px;
-  height: 210px;
+  width: 320px;
+  height: 420px;
   position: relative;
   perspective: 1200px;
 }
@@ -410,8 +410,8 @@ body {
   /* tighter cards so 2N cards fit on screen */
 }
 .cards-grid.memo-grid .card-wrapper {
-  width: 130px;
-  height: 170px;
+  width: 260px;
+  height: 340px;
 }
 .card-inner.matched {
   box-shadow: 0 0 0 3px #28a745, 0 4px 12px rgba(40, 167, 69, .3);

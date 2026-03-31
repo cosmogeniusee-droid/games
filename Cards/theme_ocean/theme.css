@@ -8,3 +8,9 @@
   --text:          #0a2d4a;
   --shadow:        rgba(30, 126, 200, 0.35);
 }
+body {
+  background-image: url('bg.png');
+  background-size: cover;
+  background-attachment: fixed;
+  background-position: center;
+}

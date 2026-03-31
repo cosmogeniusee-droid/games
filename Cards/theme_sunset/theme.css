@@ -3,8 +3,18 @@
   --bg:            #fff5ee;
   --card-back-top: #e85d20;
   --card-back-bot: #c03a00;
+  --card-back-image:  url('theme_sunset/card-back.png');
   --card-front:    #ffffff;
   --accent:        #e85d20;
   --text:          #3a1000;
   --shadow:        rgba(232, 93, 32, 0.35);
 }
+body {
+  background-image: url('bg.png');
+  background-size: cover;
+  background-attachment: fixed;
+  background-position: center;
+}
+
+/* Front face text contrast */
+.card-word { color: var(--text); border-top-color: rgba(167,139,250,0.2); }
