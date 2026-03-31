@@ -27,19 +27,57 @@ window.CARDS_GAME_ENGINE['memo'] = (function () {
     const flipAnim  = (theme && theme.flipAnim)  || 'flip';
     const startAnim = (theme && theme.startAnim) || 'cascade';
 
-    document.body.className = `anim-${flipAnim}`;
+    document.body.className = `anim-${flipAnim} memo-mode`;
 
     if (progressLabelEl) progressLabelEl.textContent = 'Пары';
     totalEl.textContent  = totalPairs;
     openedEl.textContent = '0';
     timerEl.textContent  = '0.0';
     overlay.innerHTML    = '';
-    grid.className       = `cards-grid memo-grid start-${startAnim}`;
+    grid.className = `cards-grid memo-grid start-${startAnim}`;
 
     if (totalPairs === 0) {
       grid.innerHTML = '<div class="empty-state">Карточки не добавлены.<br>Откройте конфигуратор и создайте карточки.</div>';
       return;
     }
+
+    // ── Compute optimal column count to fill available space ──────────────────
+    const totalCards = totalPairs * 2;
+    const CARD_RATIO = 4 / 3; // height / width
+    const GAP = 10;
+    const PAD = 24; // total horizontal padding
+
+
+    function computeLayout() {
+      // Fill width, multirow, header included
+      const headerH = document.querySelector('.game-header')?.offsetHeight || 0;
+      const W = grid.clientWidth  || (window.innerWidth  - PAD);
+      const H = (window.innerHeight - headerH - 32);
+
+      let bestCols = 1, bestCardH = H;
+
+      for (let c = totalCards; c >= 1; c--) {
+        const rows  = Math.ceil(totalCards / c);
+        const cardW = (W - GAP * (c - 1)) / c;
+        const cardH = cardW * CARD_RATIO;
+        const totalH = cardH * rows + GAP * (rows - 1);
+        if (totalH <= H) {
+          bestCols  = c;
+          bestCardH = cardH;
+          break;
+        }
+      }
+
+      grid.style.setProperty('--memo-cols',  bestCols);
+      grid.style.setProperty('--memo-row-h', Math.floor(bestCardH) + 'px');
+    }
+
+    requestAnimationFrame(() => computeLayout());
+    window.addEventListener('resize', computeLayout);
+
+    // Cleanup on restart
+    const _removeResize = () => window.removeEventListener('resize', computeLayout);
+    grid.addEventListener('DOMNodeRemoved', _removeResize, { once: true });
 
     // Each card appears twice; shuffle all 2N cards
     const deck = shuffle([

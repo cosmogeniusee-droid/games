@@ -27,6 +27,10 @@ body {
   flex-direction: column;
   align-items: center;
 }
+body.memo-mode {
+  height: 100vh;
+  overflow: hidden;
+}
 
 /* ── Header ── */
 .game-header {
@@ -57,6 +61,7 @@ body {
 }
 
 /* ── Cards Grid ── */
+
 .cards-grid {
   display: flex;
   flex-wrap: wrap;
@@ -66,6 +71,24 @@ body {
   max-width: 1400px;
   width: 100%;
   margin: 0 auto;
+}
+
+.memo-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--memo-cols, 4), 1fr);
+  grid-auto-rows: var(--memo-row-h, 420px);
+  gap: 18px;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px 16px;
+  align-items: stretch;
+  justify-items: stretch;
+}
+
+.memo-grid .card-wrapper {
+  width: 100%;
+  height: 100%;
 }
 
 /* ── Card Wrapper ── */
@@ -407,11 +430,21 @@ body {
 
 /* ── Memo game: matched pair ── */
 .cards-grid.memo-grid {
-  /* tighter cards so 2N cards fit on screen */
+  display: grid;
+  grid-template-columns: repeat(var(--memo-cols, 4), 1fr);
+  grid-auto-rows: var(--memo-row-h, 300px);
+  gap: 10px;
+  flex: 1 1 0;
+  width: 100%;
+  padding: 10px 12px;
+  box-sizing: border-box;
+  align-content: start;
+  overflow: hidden;
 }
 .cards-grid.memo-grid .card-wrapper {
-  width: 260px;
-  height: 340px;
+  width: 100%;
+  height: 100%;
+  perspective: 1200px;
 }
 .card-inner.matched {
   box-shadow: 0 0 0 3px #28a745, 0 4px 12px rgba(40, 167, 69, .3);
