@@ -175,10 +175,13 @@ window.CARDS_GAME_ENGINE['flip'] = (function () {
         em.className = 'card-emoji'; em.textContent = card.emoji || '❓';
         imageArea.appendChild(em);
       }
-      const wordEl = document.createElement('div');
-      wordEl.className = 'card-word'; wordEl.textContent = card.word;
       el.appendChild(imageArea);
-      el.appendChild(wordEl);
+      
+      if(card.word){
+        const wordEl = document.createElement('div');
+        wordEl.className = 'card-word'; wordEl.textContent = card.word;
+        el.appendChild(wordEl);
+      }
       return el;
     }
 
@@ -245,10 +248,12 @@ window.CARDS_GAME_ENGINE['flip'] = (function () {
         em.className = 'card-emoji'; em.textContent = card.emoji || '❓';
         imageArea.appendChild(em);
       }
-      const wordEl = document.createElement('div');
-      wordEl.className = 'card-word'; wordEl.textContent = card.word;
-      flyFront.appendChild(imageArea);
-      flyFront.appendChild(wordEl);
+       flyFront.appendChild(imageArea);
+      if (card.word) {
+        const wordEl = document.createElement('div');
+        wordEl.className = 'card-word'; wordEl.textContent = card.word;     
+        flyFront.appendChild(wordEl);
+      }
 
       flyInner.appendChild(flyBack);
       flyInner.appendChild(flyFront);
