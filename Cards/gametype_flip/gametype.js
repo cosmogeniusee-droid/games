@@ -13,23 +13,21 @@ window.CARDS_GAME_ENGINE['flip'] = (function () {
 
   function init(opts) {
     const { config, theme, grid, overlay,
-            timerEl, openedEl, totalEl, progressLabelEl,
-            shuffle, onFinish } = opts;
+            openedEl, totalEl, progressLabelEl,
+            shuffle } = opts;
 
     const cards       = shuffle(config.cards);
     const totalCards  = cards.length;
     let deckIdx       = 0;
-    let timerInterval = null;
-    let startTime     = null;
-    let timerStarted  = false;
     let animating     = false;
     let gameActive    = true;
 
     document.body.className = '';
+
     if (progressLabelEl) progressLabelEl.textContent = 'Открыто';
     totalEl.textContent  = totalCards;
     openedEl.textContent = '0';
-    timerEl.textContent  = '0.0';
+    document.querySelector('.timer-display').style.display = 'none';
     overlay.innerHTML    = '';
     grid.className       = 'deck-layout';
     grid.innerHTML       = '';
@@ -52,6 +50,31 @@ window.CARDS_GAME_ENGINE['flip'] = (function () {
 
     grid.appendChild(makePileWrap('Колода',    deckPile,    deckCountEl));
     grid.appendChild(makePileWrap('Открытые',  discardPile, discardCountEl));
+
+
+    function computeLayout() {
+      // Fill available vertical space, maintain aspect ratio 4:3 (h:w)
+      const headerH = document.querySelector('.game-header')?.offsetHeight || 0;
+      const controlsH = document.querySelector('.game-controls')?.offsetHeight || 0;
+      const availH = window.innerHeight - headerH - controlsH - 80;
+      const availW = Math.floor((grid.clientWidth || window.innerWidth) / 2) - 60;
+      // 2 piles side by side, gap 80px, some margin
+      const CARD_RATIO = 420 / 320;
+      let cardW = Math.min(420, availW);
+      let cardH = cardW * CARD_RATIO;
+      if (cardH > availH) {
+        cardH = availH;
+        cardW = cardH / CARD_RATIO;
+      }
+      grid.style.setProperty('--flip-card-w', Math.floor(cardW) + 'px');
+      grid.style.setProperty('--flip-card-h', Math.floor(cardH) + 'px');
+    }
+
+    requestAnimationFrame(() => computeLayout());
+    window.addEventListener('resize', computeLayout);
+    // Cleanup on restart
+    const _removeResize = () => window.removeEventListener('resize', computeLayout);
+    grid.addEventListener('DOMNodeRemoved', _removeResize, { once: true });
 
     renderDeck();
     renderDiscard(false);
@@ -181,13 +204,6 @@ window.CARDS_GAME_ENGINE['flip'] = (function () {
       if (!gameActive || animating) return;
       animating = true;
       playFlipSound();
-      if (!timerStarted) {
-        timerStarted  = true;
-        startTime     = Date.now();
-        timerInterval = setInterval(() => {
-          timerEl.textContent = ((Date.now() - startTime) / 1000).toFixed(1);
-        }, 100);
-      }
 
       const fromRect = deckPile.getBoundingClientRect();
       const toRect   = discardPile.getBoundingClientRect();
@@ -280,13 +296,8 @@ window.CARDS_GAME_ENGINE['flip'] = (function () {
     // ── Finish ────────────────────────────────────────────────────────────────
     function finishGame() {
       if (!gameActive) return;
-      clearInterval(timerInterval);
       gameActive = false;
-      const elapsed = timerStarted
-        ? ((Date.now() - startTime) / 1000).toFixed(1)
-        : '0.0';
-      timerEl.textContent = elapsed;
-      setTimeout(() => onFinish(elapsed), 480);
+      // No timer, no finish overlay for flip mode
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
