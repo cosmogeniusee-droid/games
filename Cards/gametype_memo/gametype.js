@@ -96,11 +96,22 @@ window.CARDS_GAME_ENGINE['memo'] = (function () {
       return wrapper;
     }
 
+    function playSound(key) {
+      const url = theme && theme[key];
+      if (!url) return;
+      try {
+        const a = (window._preloadedAudio && window._preloadedAudio[url])
+          ? window._preloadedAudio[url]
+          : new Audio(url);
+        a.currentTime = 0;
+        a.play().catch(() => {});
+      } catch (_) {}
+    }
+
     function handleClick(inner) {
       if (!gameActive || locked) return;
       if (inner.classList.contains('matched')) return;
       if (inner.classList.contains('flipped')) return;
-
       if (!timerStarted) {
         timerStarted  = true;
         startTime     = Date.now();
@@ -112,7 +123,10 @@ window.CARDS_GAME_ENGINE['memo'] = (function () {
       inner.classList.add('flipped');
       flippedCards.push(inner);
 
-      if (flippedCards.length < 2) return;
+      if (flippedCards.length < 2){        
+        playSound('flipSound');
+        return;
+      }
 
       // Two cards face-up — evaluate match
       locked = true;
@@ -125,6 +139,7 @@ window.CARDS_GAME_ENGINE['memo'] = (function () {
         b.classList.add('matched');
         // flipped class stays so the front face remains visible
         locked = false;
+        playSound('matchSound');
 
         matchedPairs++;
         openedEl.textContent = matchedPairs;
@@ -138,6 +153,7 @@ window.CARDS_GAME_ENGINE['memo'] = (function () {
         }
       } else {
         // No match — flip both back after a short pause
+        playSound('mismatchSound');
         setTimeout(() => {
           a.classList.remove('flipped');
           b.classList.remove('flipped');

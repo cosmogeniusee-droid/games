@@ -23,6 +23,9 @@ body {
   font-family: 'Segoe UI', system-ui, sans-serif;
   color: var(--text);
   transition: background 0.4s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 /* ── Header ── */
@@ -58,17 +61,18 @@ body {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 14px;
-  padding: 16px 12px;
+  gap: 18px;
+  padding: 20px 16px;
   max-width: 1400px;
+  width: 100%;
   margin: 0 auto;
 }
 
 /* ── Card Wrapper ── */
 .card-wrapper {
   perspective: 1200px;
-  width: 130px;
-  height: 168px;
+  width: 160px;
+  height: 210px;
   cursor: pointer;
 }
 
@@ -179,25 +183,25 @@ body {
   width: 100%;
 }
 .card-emoji {
-  font-size: 3.6rem;
+  font-size: 4.8rem;
   line-height: 1;
   user-select: none;
 }
 .card-img {
   max-width: 92%;
-  max-height: 100px;
+  max-height: 130px;
   object-fit: contain;
   border-radius: 8px;
 }
 .card-word {
-  font-size: 0.88rem;
+  font-size: 1rem;
   font-weight: 700;
   text-align: center;
   color: var(--text);
   word-break: break-word;
   line-height: 1.2;
   width: 100%;
-  padding: 4px 4px 2px;
+  padding: 5px 4px 3px;
   border-top: 1px solid rgba(0,0,0,0.08);
 }
 
@@ -288,8 +292,8 @@ body {
   opacity: .5;
 }
 .dl-pile {
-  width: 130px;
-  height: 168px;
+  width: 160px;
+  height: 210px;
   position: relative;
   perspective: 1200px;
 }
@@ -406,8 +410,8 @@ body {
   /* tighter cards so 2N cards fit on screen */
 }
 .cards-grid.memo-grid .card-wrapper {
-  width: 110px;
-  height: 142px;
+  width: 130px;
+  height: 170px;
 }
 .card-inner.matched {
   box-shadow: 0 0 0 3px #28a745, 0 4px 12px rgba(40, 167, 69, .3);

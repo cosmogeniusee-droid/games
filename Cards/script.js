@@ -26,6 +26,21 @@ const BACK_ICONS = ['🌟','🎨','🎯','🎪','🎭','🎬','🦋','🌙','�
 // ── State ─────────────────────────────────────────────────────────────────────
 let currentTheme  = null;   // loaded from theme_{id}/theme.js
 
+// ── Theme sound preload cache ─────────────────────────────────────────────────
+window._preloadedAudio = window._preloadedAudio || {};
+
+function preloadThemeSounds(theme) {
+  if (!theme) return;
+  ['flipSound', 'matchSound', 'mismatchSound', 'finishSound'].forEach(key => {
+    const url = theme[key];
+    if (url && !window._preloadedAudio[url]) {
+      const a = new Audio(url);
+      a.preload = 'auto';
+      window._preloadedAudio[url] = a;
+    }
+  });
+}
+
 // ── Theme loader ──────────────────────────────────────────────────────────────
 function loadTheme(themeId) {
   return new Promise(resolve => {
@@ -33,16 +48,18 @@ function loadTheme(themeId) {
     const link = document.getElementById('theme-css');
     if (link) link.href = 'theme_' + themeId + '/theme.css';
 
+    const done = (t) => { preloadThemeSounds(t); resolve(t); };
+
     // If already loaded by a previous call, reuse
     if (window.CARDS_THEMES && window.CARDS_THEMES[themeId]) {
-      resolve(window.CARDS_THEMES[themeId]);
+      done(window.CARDS_THEMES[themeId]);
       return;
     }
     // Dynamically inject theme.js (works from file:// as well as http)
     const s = document.createElement('script');
     s.src = 'theme_' + themeId + '/theme.js';
-    s.onload  = () => resolve((window.CARDS_THEMES || {})[themeId] || null);
-    s.onerror = () => resolve(null);
+    s.onload  = () => done((window.CARDS_THEMES || {})[themeId] || null);
+    s.onerror = () => done(null);
     document.head.appendChild(s);
   });
 }
@@ -131,6 +148,18 @@ function showFinish(elapsed, theme) {
   msg.className = 'finish-message';
   msg.innerHTML = `🎉 Молодец!<br><span style="font-size:.85em;font-weight:500">Время: ${elapsed} с</span>`;
   document.body.appendChild(msg);
+
+  // Play finish sound if theme defines one
+  const fsUrl = theme && theme.finishSound;
+  if (fsUrl) {
+    try {
+      const a = (window._preloadedAudio && window._preloadedAudio[fsUrl])
+        ? window._preloadedAudio[fsUrl]
+        : new Audio(fsUrl);
+      a.currentTime = 0;
+      a.play().catch(() => {});
+    } catch (_) {}
+  }
 
   const anim = (theme && theme.finishAnim) || 'confetti';
   if      (anim === 'confetti')  triggerConfetti();

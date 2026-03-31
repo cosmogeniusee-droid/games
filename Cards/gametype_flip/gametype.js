@@ -158,6 +158,18 @@ window.CARDS_GAME_ENGINE['flip'] = (function () {
     }
 
     // ── Flip animation ────────────────────────────────────────────────────────
+    function playFlipSound() {
+      const url = theme && theme.flipSound;
+      if (!url) return;
+      try {
+        const a = (window._preloadedAudio && window._preloadedAudio[url])
+          ? window._preloadedAudio[url]
+          : new Audio(url);
+        a.currentTime = 0;
+        a.play().catch(() => {});
+      } catch (_) {}
+    }
+
     const FLIP_CONFIGS = {
       flip:   { tr: 'transform 0.50s cubic-bezier(0.4, 0, 0.2, 1)',           tx: 'rotateY(180deg)' },
       bounce: { tr: 'transform 0.60s cubic-bezier(0.34, 1.56, 0.64, 1)',      tx: 'rotateY(180deg)' },
@@ -168,7 +180,7 @@ window.CARDS_GAME_ENGINE['flip'] = (function () {
     function handleFlip(topEl) {
       if (!gameActive || animating) return;
       animating = true;
-
+      playFlipSound();
       if (!timerStarted) {
         timerStarted  = true;
         startTime     = Date.now();
