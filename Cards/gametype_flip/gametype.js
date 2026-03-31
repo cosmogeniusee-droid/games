@@ -234,14 +234,18 @@ window.CARDS_GAME_ENGINE['flip'] = (function () {
         requestAnimationFrame(() => requestAnimationFrame(() => {
           flyCard.style.transform = `translate(${dx}px, ${dy}px)`;
         }));
-        flyCard.addEventListener('transitionend', () => {
-          flyCard.remove();
-          deckIdx++;
-          openedEl.textContent = deckIdx;
-          renderDeck();
-          renderDiscard(false);
-          animating = false;
-        }, { once: true });
+        // Add cleanup listener via setTimeout(0) so the still-bubbling
+        // phase-1 transitionend from flyInner doesn't fire it immediately.
+        setTimeout(() => {
+          flyCard.addEventListener('transitionend', () => {
+            flyCard.remove();
+            deckIdx++;
+            openedEl.textContent = deckIdx;
+            renderDeck();
+            renderDiscard(false);
+            animating = false;
+          }, { once: true });
+        }, 0);
       }
 
       if (flipStyle === 'fade') {
