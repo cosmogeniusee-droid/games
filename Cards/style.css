@@ -144,7 +144,6 @@ body.memo-mode {
 
 /* Back face */
 .card-back {
-  background: linear-gradient(145deg, var(--card-back-top), var(--card-back-bot));
   background-image: var(--card-back-image);
   background-size: cover;
   background-position: center;
@@ -322,7 +321,6 @@ body.memo-mode {
 }
 /* Removed duplicate .dl-pile and .dl-card definitions (see above) */
 .dl-back {
-  background: linear-gradient(145deg, var(--card-back-top), var(--card-back-bot));
   background-image: var(--card-back-image);
   background-size: cover;
   background-position: center;
@@ -389,7 +387,6 @@ body.memo-mode {
   -webkit-backface-visibility: hidden;
 }
 .dl-flying-face.dl-back {
-  background: linear-gradient(145deg, var(--card-back-top), var(--card-back-bot));
   background-image: var(--card-back-image);
   background-size: cover;
   background-position: center;

@@ -3,6 +3,7 @@
   --bg:            #f5eeff;
   --card-back-top: #7b35b8;
   --card-back-bot: #551e85;
+  --card-back-image: linear-gradient(145deg, var(--card-back-top), var(--card-back-bot));
   --card-front:    #ffffff;
   --accent:        #7b35b8;
   --text:          #280a4a;
