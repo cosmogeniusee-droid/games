@@ -265,8 +265,7 @@ body {
 }
 .card-inner.matched {
   box-shadow: 0 0 0 3px #28a745, 0 4px 12px rgba(40, 167, 69, .3);
-  border-radius: 14px;
-  filter: brightness(.88) saturate(.55);
+  border-radius: 14px;  
   pointer-events: none;
 }
 

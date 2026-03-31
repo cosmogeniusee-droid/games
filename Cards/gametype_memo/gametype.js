@@ -98,7 +98,8 @@ window.CARDS_GAME_ENGINE['memo'] = (function () {
 
     function handleClick(inner) {
       if (!gameActive || locked) return;
-      if (inner.classList.contains('flipped') || inner.classList.contains('matched')) return;
+      if (inner.classList.contains('matched')) return;
+      if (inner.classList.contains('flipped')) return;
 
       if (!timerStarted) {
         timerStarted  = true;
@@ -119,9 +120,10 @@ window.CARDS_GAME_ENGINE['memo'] = (function () {
       flippedCards  = [];
 
       if (a.dataset.pairId === b.dataset.pairId) {
-        // Matched!
+        // Matched — keep flipped, mark as matched
         a.classList.add('matched');
         b.classList.add('matched');
+        // flipped class stays so the front face remains visible
         locked = false;
 
         matchedPairs++;
