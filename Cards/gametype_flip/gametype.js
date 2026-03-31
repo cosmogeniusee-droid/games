@@ -158,6 +158,13 @@ window.CARDS_GAME_ENGINE['flip'] = (function () {
     }
 
     // ── Flip animation ────────────────────────────────────────────────────────
+    const FLIP_CONFIGS = {
+      flip:   { tr: 'transform 0.50s cubic-bezier(0.4, 0, 0.2, 1)',           tx: 'rotateY(180deg)' },
+      bounce: { tr: 'transform 0.60s cubic-bezier(0.34, 1.56, 0.64, 1)',      tx: 'rotateY(180deg)' },
+      spin:   { tr: 'transform 0.85s cubic-bezier(0.25, 0.46, 0.45, 0.94)',   tx: 'rotateY(540deg)' },
+      fade:   null,  // handled separately via opacity
+    };
+
     function handleFlip(topEl) {
       if (!gameActive || animating) return;
       animating = true;
@@ -175,31 +182,83 @@ window.CARDS_GAME_ENGINE['flip'] = (function () {
       const dx = toRect.left - fromRect.left;
       const dy = toRect.top  - fromRect.top;
 
-      // Create flying card (face-down, fixed-position)
+      const card      = cards[deckIdx];
+      const flipStyle = (theme && theme.flipAnim) || 'flip';
+      const flipCfg   = FLIP_CONFIGS[flipStyle] || FLIP_CONFIGS.flip;
+
+      // ── Build flying card ──
       const flyCard = document.createElement('div');
       flyCard.className = 'dl-flying';
-      flyCard.innerHTML = '<div class="card-back-dots"></div><div class="card-back-shine"></div>';
       flyCard.style.left   = fromRect.left   + 'px';
       flyCard.style.top    = fromRect.top    + 'px';
       flyCard.style.width  = fromRect.width  + 'px';
       flyCard.style.height = fromRect.height + 'px';
+
+      const flyInner = document.createElement('div');
+      flyInner.className = 'dl-flying-inner';
+      if (flipStyle === 'fade') flyInner.classList.add('fade-mode');
+
+      const flyBack = document.createElement('div');
+      flyBack.className = 'dl-flying-face dl-back';
+      flyBack.innerHTML = '<div class="card-back-dots"></div><div class="card-back-shine"></div>';
+
+      const flyFront = document.createElement('div');
+      flyFront.className = 'dl-flying-face dl-front';
+      const imageArea = document.createElement('div');
+      imageArea.className = 'card-image-area';
+      if (card.image) {
+        const img = document.createElement('img');
+        img.className = 'card-img'; img.src = card.image; img.alt = card.word;
+        imageArea.appendChild(img);
+      } else {
+        const em = document.createElement('div');
+        em.className = 'card-emoji'; em.textContent = card.emoji || '❓';
+        imageArea.appendChild(em);
+      }
+      const wordEl = document.createElement('div');
+      wordEl.className = 'card-word'; wordEl.textContent = card.word;
+      flyFront.appendChild(imageArea);
+      flyFront.appendChild(wordEl);
+
+      flyInner.appendChild(flyBack);
+      flyInner.appendChild(flyFront);
+      flyCard.appendChild(flyInner);
       document.body.appendChild(flyCard);
 
       topEl.style.opacity = '0';
 
-      // Trigger flight on next paint
-      requestAnimationFrame(() => requestAnimationFrame(() => {
-        flyCard.style.transform = `translate(${dx}px, ${dy}px)`;
-      }));
+      // ── Phase 1: flip / fade ──
+      function startPhase2() {
+        // slide to discard pile
+        flyCard.style.transition = 'transform 0.40s cubic-bezier(0.4, 0, 0.2, 1)';
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          flyCard.style.transform = `translate(${dx}px, ${dy}px)`;
+        }));
+        flyCard.addEventListener('transitionend', () => {
+          flyCard.remove();
+          deckIdx++;
+          openedEl.textContent = deckIdx;
+          renderDeck();
+          renderDiscard(false);
+          animating = false;
+        }, { once: true });
+      }
 
-      flyCard.addEventListener('transitionend', () => {
-        flyCard.remove();
-        deckIdx++;
-        openedEl.textContent = deckIdx;
-        renderDeck();
-        renderDiscard(true);
-        animating = false;
-      }, { once: true });
+      if (flipStyle === 'fade') {
+        // CSS class handles opacity transitions (fade-mode class already applied)
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          flyInner.classList.add('dl-flying-flip');
+        }));
+        // flyFront opacity goes 0→1; listen on it for the end
+        flyFront.addEventListener('transitionend', startPhase2, { once: true });
+      } else {
+        // 3D flip via inline transition + transform
+        flyInner.style.transition = flipCfg.tr;
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          flyInner.style.transform = flipCfg.tx;
+        }));
+        flyInner.addEventListener('transitionend', startPhase2, { once: true });
+      }
     }
 
     // ── Finish ────────────────────────────────────────────────────────────────

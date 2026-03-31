@@ -1,5 +1,9 @@
 # Copilot Workspace Instructions
 
+## Do not show thinking process
+
+When generating code, do not show your thinking process or reasoning steps. Only provide the final code output.
+
 ## File Encoding
 
 **Always use UTF-8 with BOM** when reading or writing files via PowerShell terminal commands.
