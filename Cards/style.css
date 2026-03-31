@@ -255,6 +255,21 @@ body {
   to { transform: translate(-50%, -50%) scale(1); }
 }
 
+/* ── Memo game: matched pair ── */
+.cards-grid.memo-grid {
+  /* tighter cards so 2N cards fit on screen */
+}
+.cards-grid.memo-grid .card-wrapper {
+  width: 110px;
+  height: 142px;
+}
+.card-inner.matched {
+  box-shadow: 0 0 0 3px #28a745, 0 4px 12px rgba(40, 167, 69, .3);
+  border-radius: 14px;
+  filter: brightness(.88) saturate(.55);
+  pointer-events: none;
+}
+
 /* Confetti */
 @keyframes confettiFall {
   0%   { opacity: 1; transform: translateY(0) rotate(0deg); }

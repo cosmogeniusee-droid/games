@@ -2,6 +2,8 @@
 
 /* ================================================
    Cards Game — script.js
+   Thin loader: loads theme + gametype engine,
+   delegates all game logic to gametype_{id}/gametype.js
    ================================================ */
 
 // ── Default config (shown when no teacher config saved) ───────────────────────
@@ -14,21 +16,15 @@ const DEFAULT_CONFIG = {
     { word: 'Дом',     emoji: '🏠', image: null },
     { word: 'Машина',  emoji: '🚗', image: null },
   ],
-  theme: 'ocean',
+  theme:    'ocean',
+  gameType: 'flip',
   // Animation settings live in theme_{id}/theme.js — not stored in config
 };
 
 const BACK_ICONS = ['🌟','🎨','🎯','🎪','🎭','🎬','🦋','🌙','🔮','🌺','🍀','🎵'];
 
 // ── State ─────────────────────────────────────────────────────────────────────
-let config        = null;
 let currentTheme  = null;   // loaded from theme_{id}/theme.js
-let timerInterval = null;
-let startTime     = null;
-let timerStarted  = false;
-let openedCount   = 0;
-let totalCards    = 0;
-let gameActive    = false;
 
 // ── Theme loader ──────────────────────────────────────────────────────────────
 function loadTheme(themeId) {
@@ -51,12 +47,28 @@ function loadTheme(themeId) {
   });
 }
 
+// ── Game type loader ──────────────────────────────────────────────────────────
+function loadGameType(id) {
+  return new Promise(resolve => {
+    if (window.CARDS_GAME_ENGINE && window.CARDS_GAME_ENGINE[id]) {
+      resolve(window.CARDS_GAME_ENGINE[id]);
+      return;
+    }
+    const s = document.createElement('script');
+    s.src = 'gametype_' + id + '/gametype.js';
+    s.onload  = () => resolve((window.CARDS_GAME_ENGINE || {})[id] || null);
+    s.onerror = () => resolve(null);
+    document.head.appendChild(s);
+  });
+}
+
 // ── DOM refs ──────────────────────────────────────────────────────────────────
-const timerEl   = document.getElementById('timerEl');
-const openedEl  = document.getElementById('openedCount');
-const totalEl   = document.getElementById('totalCount');
-const cardsGrid = document.getElementById('cardsGrid');
-const finishOvr = document.getElementById('finish-overlay');
+const timerEl         = document.getElementById('timerEl');
+const openedEl        = document.getElementById('openedCount');
+const totalEl         = document.getElementById('totalCount');
+const progressLabelEl = document.getElementById('progressLabel');
+const cardsGrid       = document.getElementById('cardsGrid');
+const finishOvr       = document.getElementById('finish-overlay');
 
 // ── Config loader ─────────────────────────────────────────────────────────────
 function loadConfig() {
@@ -79,153 +91,55 @@ function shuffle(arr) {
 
 // ── Init / Restart ────────────────────────────────────────────────────────────
 async function init() {
-  config = loadConfig();
+  const config     = loadConfig();
+  const themeId    = config.theme    || 'ocean';
+  const gameTypeId = config.gameType || 'flip';
 
-  clearInterval(timerInterval);
-  timerInterval = null;
-  startTime     = null;
-  timerStarted  = false;
-  openedCount   = 0;
-  gameActive    = true;
-  totalCards    = config.cards.length;
-
-  // Load theme data from theme_{id}/ subfolder
-  const themeId = config.theme || 'ocean';
-  currentTheme  = await loadTheme(themeId);
-  const flipAnim  = (currentTheme && currentTheme.flipAnim)  || 'flip';
-  const startAnim = (currentTheme && currentTheme.startAnim) || 'cascade';
-
-  document.body.className = `anim-${flipAnim}`;
-
-  // Reset UI
-  timerEl.textContent  = '0.0';
-  openedEl.textContent = '0';
-  totalEl.textContent  = totalCards;
-  finishOvr.innerHTML  = '';
+  // Clean up DOM
+  cardsGrid.innerHTML = '';
+  finishOvr.innerHTML = '';
+  cardsGrid.classList.remove('finish-rainbow');
   const oldMsg = document.querySelector('.finish-message');
   if (oldMsg) oldMsg.remove();
-  document.getElementById('cardsGrid').classList.remove('finish-rainbow');
 
-  // Build shuffled card grid
-  cardsGrid.innerHTML = '';
-  cardsGrid.className = `cards-grid start-${startAnim}`;
+  const [theme, engine] = await Promise.all([
+    loadTheme(themeId),
+    loadGameType(gameTypeId),
+  ]);
+  currentTheme = theme;
 
-  if (totalCards === 0) {
-    cardsGrid.innerHTML = '<div class="empty-state">Карточки не добавлены.<br>Откройте конфигуратор и создайте карточки.</div>';
-    gameActive = false;
+  if (!engine) {
+    cardsGrid.innerHTML = '<div class="empty-state">Тип игры не найден.</div>';
     return;
   }
 
-  shuffle(config.cards).forEach((card, i) => {
-    const wrapper = buildCard(card, i);
-    cardsGrid.appendChild(wrapper);
+  engine.init({
+    config, theme,
+    grid:            cardsGrid,
+    overlay:         finishOvr,
+    timerEl, openedEl, totalEl, progressLabelEl,
+    shuffle, BACK_ICONS,
+    onFinish(elapsed) { showFinish(elapsed, theme); },
   });
 }
 
-function restartGame() {
-  init();
-}
+function restartGame() { init(); }
 
-// ── Card element factory ──────────────────────────────────────────────────────
-function buildCard(card, index) {
-  const wrapper = document.createElement('div');
-  wrapper.className = 'card-wrapper';
-  wrapper.style.animationDelay = (index * 70) + 'ms';
-
-  const inner = document.createElement('div');
-  inner.className = 'card-inner';
-
-  // Back face
-  const back = document.createElement('div');
-  back.className = 'card-face card-back';
-  back.innerHTML = `
-    <div class="card-back-dots"></div>
-    <div class="card-back-shine"></div>
-    <div class="card-back-icon">${BACK_ICONS[index % BACK_ICONS.length]}</div>
-  `;
-
-  // Front face
-  const front = document.createElement('div');
-  front.className = 'card-face card-front';
-
-  const imageArea = document.createElement('div');
-  imageArea.className = 'card-image-area';
-
-  if (card.image) {
-    const img = document.createElement('img');
-    img.className = 'card-img';
-    img.src = card.image;
-    img.alt = card.word;
-    imageArea.appendChild(img);
-  } else {
-    const emojiEl = document.createElement('div');
-    emojiEl.className = 'card-emoji';
-    emojiEl.textContent = card.emoji || '❓';
-    imageArea.appendChild(emojiEl);
-  }
-
-  const wordEl = document.createElement('div');
-  wordEl.className = 'card-word';
-  wordEl.textContent = card.word;
-
-  front.appendChild(imageArea);
-  front.appendChild(wordEl);
-
-  inner.appendChild(back);
-  inner.appendChild(front);
-  wrapper.appendChild(inner);
-
-  wrapper.addEventListener('click', () => handleClick(inner, wrapper));
-  return wrapper;
-}
-
-// ── Card click handler ────────────────────────────────────────────────────────
-function handleClick(inner, wrapper) {
-  if (!gameActive || inner.classList.contains('flipped')) return;
-
-  // Start timer on first flip
-  if (!timerStarted) {
-    timerStarted = true;
-    startTime    = Date.now();
-    timerInterval = setInterval(() => {
-      timerEl.textContent = ((Date.now() - startTime) / 1000).toFixed(1);
-    }, 100);
-  }
-
-  inner.classList.add('flipped');
-  wrapper.style.cursor = 'default';
-  onCardRevealed();
-}
-
-function onCardRevealed() {
-  openedCount++;
-  openedEl.textContent = openedCount;
-
-  if (openedCount === totalCards) {
-    clearInterval(timerInterval);
-    gameActive = false;
-    const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
-    timerEl.textContent = elapsed;
-    // Slight delay so last card animation can settle
-    setTimeout(() => triggerFinish(elapsed), 480);
-  }
-}
-
-// ── Finish animations ─────────────────────────────────────────────────────────
-function triggerFinish(time) {
-  // Congratulation popup
+// ── Finish UI ─────────────────────────────────────────────────────────────────
+function showFinish(elapsed, theme) {
   const msg = document.createElement('div');
   msg.className = 'finish-message';
-  msg.innerHTML = `🎉 Молодец!<br><span style="font-size:.85em;font-weight:500">Время: ${time} с</span>`;
+  msg.innerHTML = `🎉 Молодец!<br><span style="font-size:.85em;font-weight:500">Время: ${elapsed} с</span>`;
   document.body.appendChild(msg);
 
-  const anim = (currentTheme && currentTheme.finishAnim) || 'confetti';
+  const anim = (theme && theme.finishAnim) || 'confetti';
   if      (anim === 'confetti')  triggerConfetti();
   else if (anim === 'stars')     triggerStars();
   else if (anim === 'fireworks') triggerFireworks();
   else if (anim === 'rainbow')   triggerRainbow();
 }
 
+// ── Finish animations ─────────────────────────────────────────────────────────
 function triggerConfetti() {
   const colors = ['#ff4757','#ffa502','#2ed573','#1e90ff','#ff6b81','#eccc68','#a29bfe','#fd79a8','#00cec9'];
   for (let i = 0; i < 90; i++) {

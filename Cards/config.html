@@ -11,6 +11,7 @@
   <script src="theme_purple/theme.js"></script>
   <script src="theme_classic/theme.js"></script>
   <script src="themes.js"></script>
+  <script src="gametypes.js"></script>
   <style>
     /* ── Card thumbnails ── */
     .card-thumb {
@@ -108,6 +109,24 @@
 
     /* ── Image preview ── */
     #imgPreview { max-width: 80px; max-height: 70px; border-radius: 8px; display: none; }
+
+    /* ── Game type cards ── */
+    .gametype-card {
+      width: 160px; border-radius: 14px; cursor: pointer;
+      border: 3px solid #dee2e6; background: #fff;
+      padding: 14px 12px 12px; text-align: center; position: relative;
+      transition: transform .18s, box-shadow .18s, border-color .18s;
+      box-shadow: 0 2px 8px rgba(0,0,0,.08);
+    }
+    .gametype-card:hover  { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,.14); }
+    .gametype-card.active { border-color: #0d6efd; box-shadow: 0 0 0 3px rgba(13,110,253,.25); }
+    .gametype-card.active::after {
+      content: '✓'; position: absolute; top: 6px; right: 10px;
+      color: #0d6efd; font-weight: 800; font-size: 1rem;
+    }
+    .gt-icon { font-size: 2.4rem; line-height: 1; display: block; }
+    .gt-name { font-weight: 700; font-size: 1rem; margin: 6px 0 4px; color: #212529; display: block; }
+    .gt-desc { font-size: .72rem; color: #6c757d; margin: 0; }
   </style>
 </head>
 <body class="bg-light">
@@ -126,6 +145,15 @@
 
     <!-- ══════════ LEFT COLUMN ══════════ -->
     <div class="col-xl-5 d-flex flex-column gap-3">
+
+      <!-- ── Game type selector ── -->
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title mb-1">🎮 Тип игры</h5>
+          <p class="text-muted small mb-3">Выберите режим игры.</p>
+          <div id="gameTypeGrid" class="d-flex flex-wrap gap-2"></div>
+        </div>
+      </div>
 
       <!-- ── Theme selector ── -->
       <div class="card shadow-sm">
@@ -242,7 +270,8 @@ function defaultConfig() {
       { word: 'Собака', emoji: '🐶', image: null },
       { word: 'Солнце', emoji: '☀️', image: null },
     ],
-    theme: 'ocean',
+    theme:    'ocean',
+    gameType: 'flip',
   };
 }
 
@@ -284,6 +313,19 @@ function getTheme() {
   return themes[config.theme] || themes[ids[0]] || { grad: 'linear-gradient(145deg,#1e7ec8,#1557a0)' };
 }
 function getThemeGrad() { return getTheme().grad; }
+
+// ── Render: game type grid ───────────────────────────────────────────────────
+function renderGameTypes() {
+  const grid = document.getElementById('gameTypeGrid');
+  grid.innerHTML = '';
+  (window.CARDS_GAME_TYPES || []).forEach(t => {
+    const card = document.createElement('div');
+    card.className = 'gametype-card' + (config.gameType === t.id ? ' active' : '');
+    card.innerHTML = `<span class="gt-icon">${t.icon}</span><span class="gt-name">${t.name}</span><p class="gt-desc">${t.desc}</p>`;
+    card.onclick = () => { config.gameType = t.id; save(); renderGameTypes(); autoPreview(); };
+    grid.appendChild(card);
+  });
+}
 
 // ── Render: theme grid ────────────────────────────────────────────────────────
 function renderThemes() {
@@ -552,6 +594,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   initEmojiPicker();
+  renderGameTypes();
   renderThemes();
   renderCards();
   updateAddPreview();
