@@ -73,23 +73,7 @@ body.memo-mode {
   margin: 0 auto;
 }
 
-.memo-grid {
-  display: grid;
-  grid-template-columns: repeat(var(--memo-cols, 4), 1fr);
-  grid-auto-rows: var(--memo-row-h, 420px);
-  gap: 18px;
-  width: 100%;
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 20px 16px;
-  align-items: stretch;
-  justify-items: stretch;
-}
-
-.memo-grid .card-wrapper {
-  width: 100%;
-  height: 100%;
-}
+/* Removed duplicate .memo-grid and .memo-grid .card-wrapper definitions (see .cards-grid.memo-grid above) */
 
 /* ── Card Wrapper ── */
 .card-wrapper {
@@ -308,10 +292,15 @@ body.memo-mode {
   transition: width 0.2s, height 0.2s;
 }
 
-.dl-card, .dl-flying {
-  width: 100%;
-  height: 100%;
+.dl-card {
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 4px 14px var(--shadow);
 }
+
+
 .dl-pile-wrap {
   display: flex;
   flex-direction: column;
@@ -331,19 +320,7 @@ body.memo-mode {
   color: var(--text);
   opacity: .5;
 }
-.dl-pile {
-  width: 320px;
-  height: 420px;
-  position: relative;
-  perspective: 1200px;
-}
-.dl-card {
-  position: absolute;
-  inset: 0;
-  border-radius: 14px;
-  overflow: hidden;
-  box-shadow: 0 4px 14px var(--shadow);
-}
+/* Removed duplicate .dl-pile and .dl-card definitions (see above) */
 .dl-back {
   background: linear-gradient(145deg, var(--card-back-top), var(--card-back-bot));
   background-image: var(--card-back-image);
