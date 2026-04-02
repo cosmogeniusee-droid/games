@@ -513,3 +513,18 @@ body.memo-mode {
   opacity: .55;
   font-size: 1.1rem;
 }
+
+/* ── Memo: vanish matched pair ── */
+@keyframes cardVanish {
+  0%   { transform: scale(1);    opacity: 1; }
+  40%  { transform: scale(1.15); opacity: 0.85; }
+  100% { transform: scale(0);    opacity: 0; }
+}
+.card-wrapper.vanish {
+  animation: cardVanish 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  pointer-events: none;
+}
+.card-wrapper.vanished {
+  visibility: hidden;
+  pointer-events: none;
+}

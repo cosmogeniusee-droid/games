@@ -165,6 +165,14 @@
           <h5 class="card-title mb-1">🎮 Тип игры</h5>
           <p class="text-muted small mb-3">Выберите режим игры.</p>
           <div id="gameTypeGrid" class="d-flex flex-wrap gap-2"></div>
+          <!-- Memo-specific options -->
+          <div id="memoOptions" class="mt-3" style="display:none">
+            <hr class="my-2">
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" role="switch" id="memoDisappearCheck">
+              <label class="form-check-label" for="memoDisappearCheck">Найденные пары исчезают</label>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -286,8 +294,9 @@ function defaultConfig() {
       { word: 'Собака', emoji: '🐶', image: null },
       { word: 'Солнце', emoji: '☀️', image: null },
     ],
-    theme:    'ocean',
-    gameType: 'flip',
+    theme:          'ocean',
+    gameType:       'flip',
+    memoDisappear:  false,
   };
 }
 
@@ -338,9 +347,21 @@ function renderGameTypes() {
     const card = document.createElement('div');
     card.className = 'gametype-card' + (config.gameType === t.id ? ' active' : '');
     card.innerHTML = `<span class="gt-icon">${t.icon}</span><span class="gt-name">${t.name}</span><p class="gt-desc">${t.desc}</p>`;
-    card.onclick = () => { config.gameType = t.id; save(); renderGameTypes(); autoPreview(); };
+    card.onclick = () => { config.gameType = t.id; save(); renderGameTypes(); renderGameOptions(); autoPreview(); };
     grid.appendChild(card);
   });
+}
+
+// ── Render: game-specific options ───────────────────────────────────────────
+function renderGameOptions() {
+  const isMemo = config.gameType === 'memo';
+  const memoOptions = document.getElementById('memoOptions');
+  memoOptions.style.display = isMemo ? '' : 'none';
+  if (isMemo) {
+    const chk = document.getElementById('memoDisappearCheck');
+    chk.checked = !!config.memoDisappear;
+    chk.onchange = () => { config.memoDisappear = chk.checked; save(); autoPreview(); };
+  }
 }
 
 // ── Render: theme grid ────────────────────────────────────────────────────────
@@ -628,6 +649,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   initEmojiPicker();
   renderGameTypes();
+  renderGameOptions();
   renderThemes();
   renderCards();
   updateAddPreview();

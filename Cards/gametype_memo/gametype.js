@@ -177,19 +177,30 @@ window.CARDS_GAME_ENGINE['memo'] = (function () {
         // Matched — keep flipped, mark as matched
         a.classList.add('matched');
         b.classList.add('matched');
-        // flipped class stays so the front face remains visible
         locked = false;
         playSound('matchSound');
 
         matchedPairs++;
         openedEl.textContent = matchedPairs;
 
+        if (config.memoDisappear) {
+          const wa = a.closest('.card-wrapper');
+          const wb = b.closest('.card-wrapper');
+          if (wa) wa.classList.add('vanish');
+          if (wb) wb.classList.add('vanish');
+          setTimeout(() => {
+            // Keep wrappers in DOM so other cards don't reposition
+            if (wa) { wa.classList.remove('vanish'); wa.classList.add('vanished'); }
+            if (wb) { wb.classList.remove('vanish'); wb.classList.add('vanished'); }
+          }, 700);
+        }
+
         if (matchedPairs === totalPairs) {
           clearInterval(timerInterval);
           gameActive = false;
           const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
           timerEl.textContent = elapsed;
-          setTimeout(() => onFinish(elapsed), 480);
+          setTimeout(() => onFinish(elapsed), config.memoDisappear ? 800 : 480);
         }
       } else {
         // No match — flip both back after a short pause
