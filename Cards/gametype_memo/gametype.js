@@ -45,26 +45,28 @@ window.CARDS_GAME_ENGINE['memo'] = (function () {
     const totalCards = totalPairs * 2;
     const CARD_RATIO = 4 / 3; // height / width
     const GAP = 10;
-    const PAD = 24; // total horizontal padding
-
 
     function computeLayout() {
-      // Fill width, multirow, header included
-      const headerH = document.querySelector('.game-header')?.offsetHeight || 0;
-      const W = grid.clientWidth  || (window.innerWidth  - PAD);
-      const H = (window.innerHeight - headerH - 32);
+      const headerH   = document.querySelector('.game-header')?.offsetHeight   || 0;
+      const controlsH = document.querySelector('.game-controls')?.offsetHeight || 0;
+      // Subtract grid's own padding (12px left+right = 24, 10px top+bottom = 20)
+      const W = (grid.clientWidth  || window.innerWidth)  - 24;
+      const H = window.innerHeight - headerH - controlsH - 20;
 
-      let bestCols = 1, bestCardH = H;
+      let bestCols = totalCards, bestCardH = 1;
 
-      for (let c = totalCards; c >= 1; c--) {
-        const rows  = Math.ceil(totalCards / c);
-        const cardW = (W - GAP * (c - 1)) / c;
-        const cardH = cardW * CARD_RATIO;
-        const totalH = cardH * rows + GAP * (rows - 1);
-        if (totalH <= H) {
-          bestCols  = c;
+      for (let c = 1; c <= totalCards; c++) {
+        const rows    = Math.ceil(totalCards / c);
+        // Card size limited by available width
+        const cardH_w = ((W - GAP * (c - 1)) / c) * CARD_RATIO;
+        // Card size limited by available height
+        const cardH_h = (H - GAP * (rows - 1)) / rows;
+        // Use whichever is more restrictive
+        const cardH   = Math.min(cardH_w, cardH_h);
+
+        if (cardH > bestCardH) {
           bestCardH = cardH;
-          break;
+          bestCols  = c;
         }
       }
 
