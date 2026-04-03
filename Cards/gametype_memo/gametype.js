@@ -82,10 +82,15 @@ window.CARDS_GAME_ENGINE['memo'] = (function () {
     grid.addEventListener('DOMNodeRemoved', _removeResize, { once: true });
 
     // Each card appears twice; shuffle all 2N cards
-    const deck = shuffle([
-      ...config.cards.map((c, i) => ({ ...c, _pairId: i })),
-      ...config.cards.map((c, i) => ({ ...c, _pairId: i })),
-    ]);
+    const deck = config.memoSplitCards
+      ? shuffle([
+          ...config.cards.map((c, i) => ({ ...c, _pairId: i, _variant: 'image' })),
+          ...config.cards.map((c, i) => ({ ...c, _pairId: i, _variant: 'text'  })),
+        ])
+      : shuffle([
+          ...config.cards.map((c, i) => ({ ...c, _pairId: i })),
+          ...config.cards.map((c, i) => ({ ...c, _pairId: i })),
+        ]);
 
     deck.forEach((card, i) => {
       grid.appendChild(buildCard(card, i));
@@ -110,24 +115,35 @@ window.CARDS_GAME_ENGINE['memo'] = (function () {
       const front = document.createElement('div');
       front.className = 'card-face card-front';
 
-      const imageArea = document.createElement('div');
-      imageArea.className = 'card-image-area';
-
-      if (card.image) {
-        const img = document.createElement('img');
-        img.className = 'card-img'; img.src = card.image; img.alt = card.word;
-        imageArea.appendChild(img);
+      if (card._variant === 'text') {
+        // Text-only card: show just the word, centered, no image
+        const wordEl = document.createElement('div');
+        wordEl.className = 'card-word card-word-only'; wordEl.textContent = card.word;
+        front.appendChild(wordEl);
       } else {
-        const em = document.createElement('div');
-        em.className = 'card-emoji'; em.textContent = card.emoji || '❓';
-        imageArea.appendChild(em);
+        // Image/emoji card (default and 'image' variant)
+        const imageArea = document.createElement('div');
+        imageArea.className = 'card-image-area';
+
+        if (card.image) {
+          const img = document.createElement('img');
+          img.className = 'card-img'; img.src = card.image; img.alt = card.word;
+          imageArea.appendChild(img);
+        } else {
+          const em = document.createElement('div');
+          em.className = 'card-emoji'; em.textContent = card.emoji || '❓';
+          imageArea.appendChild(em);
+        }
+
+        front.appendChild(imageArea);
+
+        if (!card._variant) {
+          // Normal (non-split) mode: also show word below image
+          const wordEl = document.createElement('div');
+          wordEl.className = 'card-word'; wordEl.textContent = card.word;
+          front.appendChild(wordEl);
+        }
       }
-
-      const wordEl = document.createElement('div');
-      wordEl.className = 'card-word'; wordEl.textContent = card.word;
-
-      front.appendChild(imageArea);
-      front.appendChild(wordEl);
       inner.appendChild(back);
       inner.appendChild(front);
       wrapper.appendChild(inner);

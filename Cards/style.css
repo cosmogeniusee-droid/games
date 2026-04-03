@@ -130,6 +130,7 @@ body.memo-mode {
 
 /* ── Card Faces ── */
 .card-face {
+  container-type: size;
   position: absolute;
   inset: 0;
   border-radius: 14px;
@@ -209,6 +210,16 @@ body.memo-mode {
   width: 100%;
   padding: 10px 8px 6px;
   border-top: 1px solid rgba(0,0,0,0.08);
+}
+/* Text-only card (split mode) — word fills the whole face */
+.card-word-only {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-top: none;
+  padding: 12px;
+  font-size: clamp(1.2rem, 12cqmin, 3rem);
 }
 
 /* ── Start Animations ── */

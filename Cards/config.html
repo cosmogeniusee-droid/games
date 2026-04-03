@@ -172,6 +172,10 @@
               <input class="form-check-input" type="checkbox" role="switch" id="memoDisappearCheck">
               <label class="form-check-label" for="memoDisappearCheck">Найденные пары исчезают</label>
             </div>
+            <div class="form-check form-switch mt-2">
+              <input class="form-check-input" type="checkbox" role="switch" id="memoSplitCheck">
+              <label class="form-check-label" for="memoSplitCheck">Разделить карточки: одна — картинка, другая — текст</label>
+            </div>
           </div>
         </div>
       </div>
@@ -297,6 +301,7 @@ function defaultConfig() {
     theme:          'ocean',
     gameType:       'flip',
     memoDisappear:  false,
+    memoSplitCards: false,
   };
 }
 
@@ -361,6 +366,10 @@ function renderGameOptions() {
     const chk = document.getElementById('memoDisappearCheck');
     chk.checked = !!config.memoDisappear;
     chk.onchange = () => { config.memoDisappear = chk.checked; save(); autoPreview(); };
+
+    const chkSplit = document.getElementById('memoSplitCheck');
+    chkSplit.checked = !!config.memoSplitCards;
+    chkSplit.onchange = () => { config.memoSplitCards = chkSplit.checked; save(); autoPreview(); };
   }
 }
 
