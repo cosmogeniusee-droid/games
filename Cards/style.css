@@ -201,7 +201,7 @@ body.memo-mode {
   width: 100%;
 }
 .card-word {
-  font-size: clamp(0.75rem, 18cqmin, 2rem);
+  font-size: clamp(0.75rem, 10cqmin, 2.5rem);
   font-weight: 700;
   text-align: center;
   color: var(--text);
@@ -284,7 +284,7 @@ body.memo-mode {
 /* Deck layout fills available space, piles auto-size */
 .deck-layout {
   display: flex;
-  gap: 80px;
+  gap: clamp(16px, 6vw, 80px);
   justify-content: center;
   align-items: flex-start;
   padding: 60px 20px 40px;
