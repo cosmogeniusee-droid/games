@@ -7,5 +7,5 @@ window.CARDS_THEMES['purple'] = {
   flipAnim:   'fade',
   startAnim:  'shake',
   finishAnim: 'stars',
-  badges:     ['💨 Растворение', '💃 Дрожание', '⭐ Звёзды'],
+  badges:     ['💨 Растворение', '💃 Дрожание', '⭐ Звёзды']
 };

@@ -188,6 +188,7 @@ body.memo-mode {
   align-items: center;
   justify-content: center;
   width: 100%;
+  width: 100%;
 }
 .card-emoji {
   font-size: 9.6rem;
@@ -318,7 +319,6 @@ body.memo-mode {
   color: var(--text);
   opacity: .5;
 }
-/* Removed duplicate .dl-pile and .dl-card definitions (see above) */
 .dl-back {
   background-image: var(--card-back-image);
   background-size: cover;
