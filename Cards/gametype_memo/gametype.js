@@ -47,11 +47,11 @@ window.CARDS_GAME_ENGINE['memo'] = (function () {
     const GAP = 10;
 
     function computeLayout() {
-      const headerH   = document.querySelector('.game-header')?.offsetHeight   || 0;
-      const controlsH = document.querySelector('.game-controls')?.offsetHeight || 0;
-      // Subtract grid's own padding (12px left+right = 24, 10px top+bottom = 20)
+      // Use the grid's own client dimensions — it is already flex-constrained
+      // to the available space (flex:1 1 0; min-height:0; overflow:hidden).
+      // Subtract the grid's own padding (12px×2 = 24 horizontal, 10px×2 = 20 vertical).
       const W = (grid.clientWidth  || window.innerWidth)  - 24;
-      const H = window.innerHeight - headerH - controlsH - 20;
+      const H = (grid.clientHeight || window.innerHeight) - 20;
 
       let bestCols = totalCards, bestCardH = 1;
 
@@ -70,8 +70,10 @@ window.CARDS_GAME_ENGINE['memo'] = (function () {
         }
       }
 
-      grid.style.setProperty('--memo-cols',  bestCols);
-      grid.style.setProperty('--memo-row-h', Math.floor(bestCardH) + 'px');
+      const bestCardW = Math.floor(bestCardH / CARD_RATIO);
+      grid.style.setProperty('--memo-cols',   bestCols);
+      grid.style.setProperty('--memo-card-w', bestCardW + 'px');
+      grid.style.setProperty('--memo-row-h',  Math.floor(bestCardH) + 'px');
     }
 
     requestAnimationFrame(() => computeLayout());

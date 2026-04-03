@@ -432,7 +432,7 @@ body.memo-mode {
 /* ── Memo game: matched pair ── */
 .cards-grid.memo-grid {
   display: grid;
-  grid-template-columns: repeat(var(--memo-cols, 4), 1fr);
+  grid-template-columns: repeat(var(--memo-cols, 4), var(--memo-card-w, 200px));
   grid-auto-rows: var(--memo-row-h, 300px);
   gap: 10px;
   flex: 1 1 0;
