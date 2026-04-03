@@ -59,7 +59,7 @@ window.CARDS_GAME_ENGINE['flip'] = (function () {
       const availH = window.innerHeight - headerH - controlsH - 140;
       const availW = Math.floor((grid.clientWidth || window.innerWidth) / 2) - 60;
       console.log('Layout', { availW, availH });
-      const CARD_RATIO = 420 / 320;
+      const CARD_RATIO = 300 / 200;
       let cardW = availW;
       let cardH = cardW * CARD_RATIO;
        console.log('Size 1', { cardW, cardH });
@@ -135,16 +135,6 @@ window.CARDS_GAME_ENGINE['flip'] = (function () {
         slot.className = 'dl-slot';
         discardPile.appendChild(slot);
         return;
-      }
-
-      // Depth layers
-      const layerCount = Math.min(3, discarded - 1);
-      for (let i = layerCount; i >= 1; i--) {
-        const layer = document.createElement('div');
-        layer.className = 'dl-card dl-back dl-depth-layer';
-        layer.style.opacity = '0.5';
-        layer.style.transform = `translate(${-i * 2}px, ${i * 3}px)`;
-        discardPile.appendChild(layer);
       }
 
       // Top face-up card

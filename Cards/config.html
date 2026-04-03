@@ -648,7 +648,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('imageInput').addEventListener('change', function() {
     const file = this.files[0];
     if (!file) return;
-    resizeImage(file, 300, 0.82, dataUrl => {
+    resizeImage(file, 600, 0.82, dataUrl => {
       pendingImage = dataUrl;
       const preview = document.getElementById('imgPreview');
       preview.src = dataUrl; preview.style.display = 'block';

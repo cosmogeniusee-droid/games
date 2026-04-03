@@ -79,8 +79,8 @@ body.memo-mode {
 /* ── Card Wrapper ── */
 .card-wrapper {
   perspective: 1200px;
-  width: 320px;
-  height: 420px;
+  width: 200px;
+  height: 300px;
   cursor: pointer;
 }
 

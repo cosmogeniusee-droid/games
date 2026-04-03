@@ -43,7 +43,7 @@ window.CARDS_GAME_ENGINE['memo'] = (function () {
 
     // ── Compute optimal column count to fill available space ──────────────────
     const totalCards = totalPairs * 2;
-    const CARD_RATIO = 4 / 3; // height / width
+    const CARD_RATIO = 300 / 200; // height / width
     const GAP = 10;
 
     function computeLayout() {
