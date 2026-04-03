@@ -176,8 +176,6 @@ body.memo-mode {
 .card-front {
   background: var(--card-front);
   transform: rotateY(180deg);
-  padding: 10px 8px 8px;
-  gap: 6px;
 }
 /* In fade mode the front must not be pre-rotated */
 .anim-fade .card-front {
@@ -197,8 +195,10 @@ body.memo-mode {
   user-select: none;
 }
 .card-img {
-  object-fit: contain;
+  object-fit: cover;
   border-radius: 8px;
+  height: 100%;
+  width: 100%;
 }
 .card-word {
   font-size: 2rem;
@@ -208,7 +208,6 @@ body.memo-mode {
   word-break: break-word;
   line-height: 1.2;
   width: 100%;
-  padding: 10px 8px 6px;
   border-top: 1px solid rgba(0,0,0,0.08);
 }
 /* Text-only card (split mode) — word fills the whole face */
@@ -341,7 +340,6 @@ body.memo-mode {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 10px 8px 8px;
   gap: 6px;
 }
 .dl-depth-layer { pointer-events: none; }
@@ -408,7 +406,6 @@ body.memo-mode {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 10px 8px 8px;
   gap: 6px;
 }
 /* fade mode overrides */

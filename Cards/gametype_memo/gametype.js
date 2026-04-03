@@ -139,7 +139,7 @@ window.CARDS_GAME_ENGINE['memo'] = (function () {
 
         front.appendChild(imageArea);
 
-        if (!card._variant) {
+        if (!card._variant && card.word) {
           // Normal (non-split) mode: also show word below image
           const wordEl = document.createElement('div');
           wordEl.className = 'card-word'; wordEl.textContent = card.word;
