@@ -183,15 +183,15 @@ body.memo-mode {
   transform: none !important;
 }
 .card-image-area {
+  container-type: size;
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
-  width: 100%;
 }
 .card-emoji {
-  font-size: 9.6rem;
+  font-size: clamp(1.5rem, 80cqmin, 14rem);
   line-height: 1;
   user-select: none;
 }
