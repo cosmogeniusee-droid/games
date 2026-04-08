@@ -17,6 +17,7 @@ const urlParams  = new URLSearchParams(window.location.search);
 const GRID_SIZE  = parseInt(urlParams.get('gridSize') || '7', 10);
 const MIN_OCC    = parseInt(urlParams.get('min')      || '4', 10);
 const MAX_OCC    = parseInt(urlParams.get('max')      || '7', 10);
+const TIME_LIMIT = parseInt(urlParams.get('time')     || '0', 10);
 const TOTAL_CELLS = GRID_SIZE * GRID_SIZE;
 
 let figureConfig;
@@ -134,16 +135,40 @@ document.addEventListener('fullscreenchange', () => {
 
 // ==================== Timer ====================
 
-function startTimer() {
-    const t0 = Date.now();
-    timerInterval = setInterval(() => {
-        const s = Math.floor((Date.now() - t0) / 1000);
-        timerDisplay.textContent =
-            `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
-    }, 500);
+function fmtTime(s) {
+    return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 }
 
-function stopTimer() { clearInterval(timerInterval); }
+function startTimer() {
+    if (TIME_LIMIT > 0) {
+        // Countdown mode
+        let remaining = TIME_LIMIT;
+        timerDisplay.textContent = fmtTime(remaining);
+        timerInterval = setInterval(() => {
+            remaining--;
+            timerDisplay.textContent = fmtTime(remaining);
+            if (remaining <= 10) {
+                timerDisplay.classList.add('timer-urgent');
+            }
+            if (remaining <= 0) {
+                stopTimer();
+                endGame(false);
+            }
+        }, 1000);
+    } else {
+        // Count-up mode
+        const t0 = Date.now();
+        timerInterval = setInterval(() => {
+            const s = Math.floor((Date.now() - t0) / 1000);
+            timerDisplay.textContent = fmtTime(s);
+        }, 500);
+    }
+}
+
+function stopTimer() {
+    clearInterval(timerInterval);
+    timerDisplay.classList.remove('timer-urgent');
+}
 
 // ==================== Generation ====================
 
@@ -240,6 +265,10 @@ function endGame(win) {
         messageArea.innerHTML = `ПОБЕДА! 🎉 Время: ${timerDisplay.textContent}. Ошибок: ${errorCount}. Ты нашёл все фигуры!`;
         messageArea.style.backgroundColor = '#a4f5aa';
         messageArea.style.borderColor = '#3cb371';
+    } else {
+        messageArea.innerHTML = `ВРЕМЯ ВЫШЛО! ⏰ Не успел... Осталось найти: ${remainingCount}. Ошибок: ${errorCount}.`;
+        messageArea.style.backgroundColor = '#f5a4a4';
+        messageArea.style.borderColor = '#c0392b';
     }
 }
 
@@ -258,7 +287,7 @@ function startGame() {
     startButton.textContent = 'Новая игра!';
     errorCountDisplay.textContent = '0';
     stopTimer();
-    timerDisplay.textContent = '00:00';
+    timerDisplay.textContent = TIME_LIMIT > 0 ? fmtTime(TIME_LIMIT) : '00:00';
     generateGameField();
     startTimer();
 }

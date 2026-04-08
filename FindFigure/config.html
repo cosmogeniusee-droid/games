@@ -53,6 +53,11 @@
                         <label class="form-label">Макс. кол-во каждой фигуры: <strong id="maxVal">7</strong></label>
                         <input type="range" id="maxOcc" class="form-range" value="7" min="1" max="30">
                     </div>
+                    <div class="mb-3">
+                        <label class="form-label">Таймер (обратный отсчёт): <strong id="timeVal">выкл.</strong></label>
+                        <input type="range" id="timeLimit" class="form-range" value="0" min="0" max="300" step="5">
+                        <small class="text-muted">0 — без ограничений (считать вверх). Иначе — сколько секунд даётся на игру.</small>
+                    </div>
                     <hr>
                     <div class="mb-3">
                         <label class="form-label">Сгенерированная ссылка:</label>
@@ -151,10 +156,18 @@ function buildConfig(){
 const gridSizeEl=document.getElementById('gridSize');
 const minOccEl=document.getElementById('minOcc');
 const maxOccEl=document.getElementById('maxOcc');
+const timeLimitEl=document.getElementById('timeLimit');
 const urlDisplay=document.getElementById('urlDisplay');
 const gameLink=document.getElementById('gameLink');
 const copyBtn=document.getElementById('copyBtn');
 const previewFrame=document.getElementById('previewFrame');
+
+function formatTimeLabel(v){
+    if(v===0||v==='0')return 'выкл.';
+    const s=parseInt(v);
+    const m=Math.floor(s/60),sec=s%60;
+    return m>0?(sec>0?`${m} мин ${sec} сек`:`${m} мин`):`${sec} сек`;
+}
 
 function updateLink(){
     if(parseInt(maxOccEl.value)<parseInt(minOccEl.value)){maxOccEl.value=minOccEl.value;document.getElementById('maxVal').textContent=maxOccEl.value;}
@@ -163,8 +176,10 @@ function updateLink(){
     if(gridSizeEl.value!=='7')params.set('gridSize',gridSizeEl.value);
     if(minOccEl.value!=='4')params.set('min',minOccEl.value);
     if(maxOccEl.value!=='7')params.set('max',maxOccEl.value);
+    if(timeLimitEl.value!=='0')params.set('time',timeLimitEl.value);
     const qs=params.toString(),previewUrl=qs?`index.html?${qs}`:'index.html';
-    urlDisplay.value=previewUrl;gameLink.href=previewUrl;previewFrame.src=previewUrl;
+    const fullUrl=`https://cosmogeniusee-droid.github.io/games/FindFigure/${previewUrl}`;
+    urlDisplay.value=fullUrl;gameLink.href=previewUrl;previewFrame.src=previewUrl;
 }
 
 function updateSliderDisplays(){
@@ -172,9 +187,10 @@ function updateSliderDisplays(){
     document.getElementById('gridSizeVal2').textContent=gridSizeEl.value;
     document.getElementById('minVal').textContent=minOccEl.value;
     document.getElementById('maxVal').textContent=maxOccEl.value;
+    document.getElementById('timeVal').textContent=formatTimeLabel(timeLimitEl.value);
 }
 
-[gridSizeEl,minOccEl,maxOccEl].forEach(el=>el.addEventListener('input',()=>{updateSliderDisplays();updateLink();}));
+[gridSizeEl,minOccEl,maxOccEl,timeLimitEl].forEach(el=>el.addEventListener('input',()=>{updateSliderDisplays();updateLink();}));
 copyBtn.addEventListener('click',()=>{navigator.clipboard.writeText(urlDisplay.value).then(()=>{const o=copyBtn.textContent;copyBtn.textContent='Скопировано!';setTimeout(()=>{copyBtn.textContent=o;},2000);}).catch(e=>console.error(e));});
 
 renderShapeCards();
