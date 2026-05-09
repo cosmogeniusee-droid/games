@@ -16,7 +16,7 @@
         }
 
         .letter.instant {
-            animation-timing-function: steps(6, end);
+            animation: none;
         }
 
         .word {
@@ -115,16 +115,24 @@
                 const letterSpan = document.createElement('span');
                 letterSpan.textContent = char;
                 letterSpan.classList.add('letter');
-                if (config.animation.mode === 'instant') letterSpan.classList.add('instant');
                 letterSpan.style.fontSize = config.style.fontSize;
 
                 const durationRange = config.animation.maxDuration - config.animation.minDuration;
                 const speed = (Math.random() * durationRange + config.animation.minDuration).toFixed(2);
-                letterSpan.style.animationDuration = `${speed}s`;
 
-                // Negative delay so each letter starts at a random point in the color cycle
-                const delay = (-(Math.random() * parseFloat(speed))).toFixed(2);
-                letterSpan.style.animationDelay = `${delay}s`;
+                if (config.animation.mode === 'instant') {
+                    letterSpan.classList.add('instant');
+                    const sat = config.style.saturation;
+                    const light = config.style.lightness;
+                    const randomColor = () => `hsl(${Math.floor(Math.random() * 360)}, ${sat}%, ${light}%)`;
+                    letterSpan.style.color = randomColor();
+                    setInterval(() => { letterSpan.style.color = randomColor(); }, Math.round(speed * 200));
+                } else {
+                    letterSpan.style.animationDuration = `${speed}s`;
+                    // Negative delay so each letter starts at a random point in the color cycle
+                    const delay = (-(Math.random() * parseFloat(speed))).toFixed(2);
+                    letterSpan.style.animationDelay = `${delay}s`;
+                }
 
                 wordSpan.appendChild(letterSpan);
             });

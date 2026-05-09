@@ -18,5 +18,8 @@
 * [Вращающийся Рассказ](/CharRotator/index.html)
 * [Вращающийся Рассказ (Создание ссылки)](/CharRotator/config.html)
 
+* [Цветной Рассказ](/CharColorizer/index.html)
+* [Цветной Рассказ (Создание ссылки)](/CharColorizer/config.html)
+
 * [Пазл](/Puzzle/index.html)
 * [Пазл (Создание ссылки)](/Puzzle/config.html)
