@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Словесные прятки</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f0f4ff;
+        }
+
+        #game-area {
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            padding: 24px 16px;
+            text-align: center;
+        }
+
+        .letter-block {
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .letter {
+            font-size: 2.5rem;
+            font-weight: bold;
+            line-height: 1.2;
+            padding: 4px 2px;
+            user-select: none;
+            transition: color 0.15s;
+        }
+
+        /* Clickable gap between letters */
+        .gap {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 3.6rem;
+            cursor: pointer;
+            position: relative;
+            vertical-align: middle;
+            flex-shrink: 0;
+        }
+
+        /* Dashed hint line — visible on hover only */
+        .gap::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 5%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 90%;
+            border-left: 2px dashed #b0bec5;
+            opacity: 0;
+            transition: opacity 0.15s;
+            pointer-events: none;
+        }
+        .gap:hover::before { opacity: 1; }
+        .gap.cut::before   { opacity: 0; } /* hide dashes when scissors shown */
+
+        /* Scissors emoji */
+        .gap-scissors {
+            font-size: 1.5rem;
+            line-height: 1;
+            opacity: 0;
+            transform: scale(0.3) rotate(-30deg);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            pointer-events: none;
+            user-select: none;
+            display: block;
+        }
+        .gap:hover .gap-scissors {
+            opacity: 0.35;
+            transform: scale(0.8) rotate(0deg);
+        }
+        .gap.cut .gap-scissors {
+            opacity: 1;
+            transform: scale(1.1) rotate(0deg);
+            animation: scissor-pop 0.25s ease forwards;
+        }
+
+        @keyframes scissor-pop {
+            0%   { transform: scale(0.4) rotate(-20deg); }
+            60%  { transform: scale(1.25) rotate(5deg); }
+            100% { transform: scale(1.1) rotate(0deg); }
+        }
+
+        /* Space inserted between words */
+        .space-insert {
+            display: inline-block;
+            width: 1.1rem;
+        }
+
+        /* Correct/wrong feedback */
+        .letter.correct { color: #2e7d32; }
+        .letter.wrong   { color: #c62828; }
+
+        /* Result banner */
+        #result-banner {
+            display: none;
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+        #result-banner.show { display: block; }
+
+        #check-btn:disabled {
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container py-4">
+        <h1 class="text-center mb-4">✂️ Словесные прятки ✂️</h1>
+
+        <div class="text-center mb-3 d-flex flex-wrap justify-content-center gap-2">
+            <button id="fullscreen-btn" class="btn btn-primary">Full Screen</button>
+            <button id="check-btn" class="btn btn-success">Проверить ✅</button>
+            <button id="reset-btn" class="btn btn-outline-secondary">Сбросить 🔄</button>
+            <button id="hint-btn" class="btn btn-outline-warning">Подсказка 💡</button>
+        </div>
+
+        <div id="result-banner" class="text-center mb-3"></div>
+
+        <div id="game-area"></div>
+
+        <p class="text-center mt-3 text-muted small">Нажимайте между буквами, чтобы расставить пробелы.</p>
+    </div>
+
+    <script>
+        const defaultConfig = {
+            sentence: 'МАМА МЫЛА РАМУ',
+            style: {
+                fontSize: '2.5rem',
+                color: '#333333',
+                backgroundColor: '#f0f4ff',
+                backgroundImage: ''
+            }
+        };
+
+        const params = new URLSearchParams(window.location.search);
+
+        const rawSentence    = params.get('text')   || defaultConfig.sentence;
+        const fontSize       = params.get('size')   ? `${params.get('size')}rem` : defaultConfig.style.fontSize;
+        const color          = params.get('color')  ? `#${params.get('color')}` : defaultConfig.style.color;
+        const bgColor        = params.get('bgcolor')? `#${params.get('bgcolor')}` : defaultConfig.style.backgroundColor;
+        const bgImage        = params.get('bg')     ? `url(${params.get('bg')})` : defaultConfig.style.backgroundImage;
+        const caseSensitive  = params.get('case') === '1';
+
+        document.body.style.setProperty('background-color', bgColor, 'important');
+        if (bgImage) {
+            document.body.style.setProperty('background-image', bgImage, 'important');
+            document.body.style.setProperty('background-size', 'cover', 'important');
+            document.body.style.setProperty('background-position', 'center', 'important');
+        }
+
+        // Normalize: treat the sentence as the source of truth.
+        // Display: remove spaces; player must put them back.
+        const words = rawSentence.trim().split(/\s+/);
+        const displayText = caseSensitive ? words.join('') : words.join('').toUpperCase();
+
+        // Build list of correct gap positions (0-indexed between chars, i.e. after char index i)
+        // e.g. "МАМА МЫЛА" → displayText "МАМАМЫЛА", gap after index 3 (between А and М)
+        const correctGaps = new Set();
+        let pos = 0;
+        for (let i = 0; i < words.length - 1; i++) {
+            pos += words[i].length;
+            correctGaps.add(pos - 1); // gap is after character at index pos-1
+        }
+
+        // State: which gaps are currently cut
+        const cutGaps = new Set();
+
+        const gameArea   = document.getElementById('game-area');
+        const checkBtn   = document.getElementById('check-btn');
+        const resetBtn   = document.getElementById('reset-btn');
+        const hintBtn    = document.getElementById('hint-btn');
+        const resultBanner = document.getElementById('result-banner');
+
+        // DOM refs for gaps and letters
+        const gapEls   = []; // gapEls[i] = gap element after letter i
+        const letterEls = [];
+
+        function buildBoard() {
+            gameArea.innerHTML = '';
+            gapEls.length = 0;
+            letterEls.length = 0;
+            resultBanner.className = '';
+            resultBanner.textContent = '';
+
+            for (let i = 0; i < displayText.length; i++) {
+                const block = document.createElement('span');
+                block.className = 'letter-block';
+
+                const letterSpan = document.createElement('span');
+                letterSpan.className = 'letter';
+                letterSpan.textContent = displayText[i];
+                letterSpan.style.fontSize = fontSize;
+                letterSpan.style.color = color;
+                block.appendChild(letterSpan);
+                letterEls.push(letterSpan);
+
+                // Gap after every letter except the last
+                if (i < displayText.length - 1) {
+                    const gapSpan = document.createElement('span');
+                    gapSpan.className = 'gap';
+                    gapSpan.dataset.index = i;
+                    if (cutGaps.has(i)) gapSpan.classList.add('cut');
+
+                    const scissors = document.createElement('span');
+                    scissors.className = 'gap-scissors';
+                    scissors.textContent = '✂️';
+                    gapSpan.appendChild(scissors);
+
+                    gapSpan.addEventListener('click', onGapClick);
+                    block.appendChild(gapSpan);
+                    gapEls.push(gapSpan);
+                }
+
+                gameArea.appendChild(block);
+            }
+        }
+
+        function onGapClick(e) {
+            const idx = parseInt(e.currentTarget.dataset.index, 10);
+            if (cutGaps.has(idx)) {
+                cutGaps.delete(idx);
+                e.currentTarget.classList.remove('cut');
+            } else {
+                cutGaps.add(idx);
+                e.currentTarget.classList.add('cut');
+            }
+            // Clear feedback
+            letterEls.forEach(l => l.classList.remove('correct', 'wrong'));
+            resultBanner.className = '';
+            resultBanner.textContent = '';
+        }
+
+        checkBtn.addEventListener('click', () => {
+            // Clear old feedback
+            letterEls.forEach(l => l.classList.remove('correct', 'wrong'));
+
+            let allCorrect = true;
+
+            // Check each cut gap
+            cutGaps.forEach(idx => {
+                const isCorrect = correctGaps.has(idx);
+                // colour the two letters around this gap
+                letterEls[idx].classList.add(isCorrect ? 'correct' : 'wrong');
+                letterEls[idx + 1].classList.add(isCorrect ? 'correct' : 'wrong');
+                if (!isCorrect) allCorrect = false;
+            });
+
+            // Check if all correct gaps are cut
+            correctGaps.forEach(idx => {
+                if (!cutGaps.has(idx)) allCorrect = false;
+            });
+
+            // Check counts match
+            if (cutGaps.size !== correctGaps.size) allCorrect = false;
+
+            resultBanner.className = 'text-center mb-3 show alert ' + (allCorrect ? 'alert-success' : 'alert-danger');
+            resultBanner.textContent = allCorrect
+                ? '🎉 Правильно! Все слова найдены!'
+                : '❌ Есть ошибки. Попробуйте ещё раз!';
+        });
+
+        resetBtn.addEventListener('click', () => {
+            cutGaps.clear();
+            buildBoard();
+        });
+
+        hintBtn.addEventListener('click', () => {
+            // Reveal one missing correct gap
+            for (const idx of correctGaps) {
+                if (!cutGaps.has(idx)) {
+                    cutGaps.add(idx);
+                    gapEls[idx].classList.add('cut');
+                    // Clear feedback
+                    letterEls.forEach(l => l.classList.remove('correct', 'wrong'));
+                    resultBanner.className = '';
+                    resultBanner.textContent = '';
+                    break;
+                }
+            }
+        });
+
+        // Fullscreen
+        const fullscreenBtn = document.getElementById('fullscreen-btn');
+        fullscreenBtn.addEventListener('click', () => {
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+            else document.exitFullscreen();
+        });
+        document.addEventListener('fullscreenchange', () => {
+            fullscreenBtn.textContent = document.fullscreenElement ? 'Exit Full Screen' : 'Full Screen';
+        });
+
+        buildBoard();
+    </script>
+</body>
+</html>

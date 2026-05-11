@@ -26,3 +26,9 @@
 
 * [Половинки](/HalfChar/index.html)
 * [Половинки (Создание ссылки)](/HalfChar/config.html)
+
+* [Пиктограммы](/Pictograms/index.html)
+* [Пиктограммы (Создание ссылки)](/Pictograms/config.html)
+
+* [Словесные прятки](/WordHide/index.html)
+* [Словесные прятки (Создание ссылки)](/WordHide/config.html)
