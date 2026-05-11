@@ -352,7 +352,7 @@
         const pos = selected.length; // which slot are we filling?
 
         // Check if correct
-        if (chosenItem.origIdx === pos) {
+        if (chosenItem.syl === currentSyllables[pos]) {
             // Correct!
             playClunk();
             selected.push(btnIdx);
@@ -427,7 +427,7 @@
         const pos = selected.length;
         if (pos >= currentSyllables.length) return;
         const correctBtnIdx = shuffled.findIndex((item, i) =>
-            item.origIdx === pos && !btnEls[i].classList.contains('used')
+            item.syl === currentSyllables[pos] && !btnEls[i].classList.contains('used')
         );
         if (correctBtnIdx !== -1) {
             btnEls[correctBtnIdx].style.outline = '4px solid #66bb6a';
@@ -514,23 +514,44 @@
     // Rhythmic chug-chug while train departs
     function playChugging(durationMs) {
         const ctx = getAudioCtx();
-        const steps = Math.floor(durationMs / 160);
+        const interval = 0.25; // seconds per chug
+        const steps = Math.floor(durationMs / (interval * 1000));
+
+        // Build a shared white-noise buffer (0.3s)
+        const bufLen = Math.ceil(ctx.sampleRate * 0.3);
+        const noiseBuffer = ctx.createBuffer(1, bufLen, ctx.sampleRate);
+        const data = noiseBuffer.getChannelData(0);
+        for (let k = 0; k < bufLen; k++) data[k] = Math.random() * 2 - 1;
+
         for (let i = 0; i < steps; i++) {
-            const t = ctx.currentTime + i * 0.16;
-            // Noise burst via oscillator
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            const filter = ctx.createBiquadFilter();
-            osc.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
-            osc.type = 'sawtooth';
-            filter.type = 'bandpass';
-            filter.frequency.value = 220 + (i % 2) * 80;
-            filter.Q.value = 1.5;
-            osc.frequency.setValueAtTime(110, t);
-            gain.gain.setValueAtTime(0.18, t);
-            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.13);
-            osc.start(t);
-            osc.stop(t + 0.14);
+            const t = ctx.currentTime + i * interval;
+
+            // ── Thump: noise → lowpass → gain (boom)
+            const thumpSrc = ctx.createBufferSource();
+            thumpSrc.buffer = noiseBuffer;
+            const thumpLp = ctx.createBiquadFilter();
+            thumpLp.type = 'lowpass';
+            thumpLp.frequency.value = 120;
+            thumpLp.Q.value = 2;
+            const thumpGain = ctx.createGain();
+            thumpSrc.connect(thumpLp); thumpLp.connect(thumpGain); thumpGain.connect(ctx.destination);
+            thumpGain.gain.setValueAtTime(1.2, t);
+            thumpGain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+            thumpSrc.start(t); thumpSrc.stop(t + 0.13);
+
+            // ── Hiss: noise → bandpass → gain (steam exhale)
+            const hissSrc = ctx.createBufferSource();
+            hissSrc.buffer = noiseBuffer;
+            const hissBp = ctx.createBiquadFilter();
+            hissBp.type = 'bandpass';
+            hissBp.frequency.value = 800;
+            hissBp.Q.value = 0.6;
+            const hissGain = ctx.createGain();
+            hissSrc.connect(hissBp); hissBp.connect(hissGain); hissGain.connect(ctx.destination);
+            hissGain.gain.setValueAtTime(0, t + 0.05);
+            hissGain.gain.linearRampToValueAtTime(0.35, t + 0.09);
+            hissGain.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+            hissSrc.start(t + 0.05); hissSrc.stop(t + 0.23);
         }
     }
 
