@@ -32,3 +32,6 @@
 
 * [Словесные прятки](/WordHide/index.html)
 * [Словесные прятки (Создание ссылки)](/WordHide/config.html)
+
+* [Слоговой поезд](/SyllableTrain/index.html)
+* [Слоговой поезд (Создание ссылки)](/SyllableTrain/config.html)
