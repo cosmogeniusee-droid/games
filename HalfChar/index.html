@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Половина текста</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .letter {
+            display: inline-block;
+            font-size: 2.5rem;
+            font-weight: bold;
+            padding: 5px;
+            clip-path: var(--clip);
+        }
+
+        .word {
+            display: inline-block;
+            white-space: nowrap;
+            margin-right: 10px;
+        }
+
+        #story-container {
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container py-5">
+        <h1 class="text-center mb-4">✂️ Половина текста ✂️</h1>
+
+        <div class="text-center mb-3">
+            <button id="fullscreen-btn" class="btn btn-primary">Full Screen</button>
+        </div>
+
+        <div id="story-container"></div>
+
+        <p class="text-center mt-3 text-muted">Попробуйте прочитать рассказ!</p>
+    </div>
+
+    <script>
+        const defaultConfig = {
+            storyText: "Вечер был тихим. Солнце медленно садилось за горизонт. На небе появились первые звёзды. Лёгкий ветерок шелестел листвой деревьев. Наступила прохлада.",
+            containerId: 'story-container',
+            style: {
+                fontSize: '2.5rem',
+                color: '#333333',
+                backgroundColor: '#f0f8ff',
+                backgroundImage: ''
+            }
+        };
+
+        const params = new URLSearchParams(window.location.search);
+        const config = { ...defaultConfig, style: { ...defaultConfig.style } };
+        config.storyText = params.get('text') || defaultConfig.storyText;
+        config.style.fontSize = params.get('size') ? `${params.get('size')}rem` : defaultConfig.style.fontSize;
+        config.style.color = params.get('color') ? `#${params.get('color')}` : defaultConfig.style.color;
+        config.style.backgroundColor = params.get('bgcolor') ? `#${params.get('bgcolor')}` : defaultConfig.style.backgroundColor;
+        config.style.backgroundImage = params.get('bg') ? `url(${params.get('bg')})` : defaultConfig.style.backgroundImage;
+
+        const half = params.get('half') === 'bottom' ? 'bottom' : 'top';
+        const pct = Math.min(99, Math.max(1, parseFloat(params.get('pct')) || 50));
+        // clip-path inset: top right bottom left
+        const clip = half === 'top'
+            ? `inset(0 0 ${100 - pct}% 0)`
+            : `inset(${100 - pct}% 0 0 0)`;
+
+        const container = document.getElementById(config.containerId);
+
+        document.body.style.setProperty('background-color', config.style.backgroundColor, 'important');
+        if (config.style.backgroundImage) {
+            document.body.style.setProperty('background-image', config.style.backgroundImage, 'important');
+            document.body.style.setProperty('background-size', 'cover', 'important');
+            document.body.style.setProperty('background-position', 'center', 'important');
+        }
+
+        const words = config.storyText.split(' ');
+
+        words.forEach(word => {
+            const wordSpan = document.createElement('span');
+            wordSpan.classList.add('word');
+
+            word.split('').forEach(char => {
+                const letterSpan = document.createElement('span');
+                letterSpan.textContent = char;
+                letterSpan.classList.add('letter');
+                letterSpan.style.fontSize = config.style.fontSize;
+                letterSpan.style.color = config.style.color;
+                letterSpan.style.setProperty('--clip', clip);
+                wordSpan.appendChild(letterSpan);
+            });
+
+            container.appendChild(wordSpan);
+        });
+    </script>
+
+    <script>
+        const fullscreenBtn = document.getElementById('fullscreen-btn');
+        fullscreenBtn.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        });
+
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement) {
+                fullscreenBtn.textContent = 'Full Screen';
+            } else {
+                fullscreenBtn.textContent = 'Exit Full Screen';
+            }
+        });
+    </script>
+
+</body>
+</html>
