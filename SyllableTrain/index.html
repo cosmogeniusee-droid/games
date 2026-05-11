@@ -248,6 +248,13 @@
     <div id="station"></div>
 </div>
 
+<!-- Start overlay -->
+<div id="start-overlay" style="position:fixed;inset:0;background:rgba(232,245,233,0.97);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;">
+    <div style="font-size:5rem;margin-bottom:16px;">🚂</div>
+    <h2 style="margin-bottom:24px;color:#2e7d32;">Слоговой поезд</h2>
+    <button id="start-btn" style="font-size:1.6rem;padding:16px 48px;border:none;border-radius:16px;background:linear-gradient(145deg,#43a047,#66bb6a);color:#fff;box-shadow:0 6px 0 #2e7d32,0 8px 16px rgba(0,0,0,.2);cursor:pointer;">▶ Начать игру</button>
+</div>
+
 <script>
     const defaultWords = [
         ['МА','МА'],
@@ -449,31 +456,38 @@
     // ── Sound engine (Web Audio API) ────────────────────────────────────────
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     let actx = null;
-    let audioReady = false;
 
     function getAudioCtx() {
         if (!actx) actx = new AudioCtx();
         return actx;
     }
 
-    // Warm up: resume suspended context and mark ready
-    async function warmUp() {
+    // Returns a running AudioContext — instant if already running.
+    async function readyCtx() {
         const ctx = getAudioCtx();
-        if (ctx.state === 'suspended') await ctx.resume();
-        audioReady = true;
+        if (ctx.state !== 'running') await ctx.resume();
+        return ctx;
     }
-    document.addEventListener('pointerdown', warmUp, { once: true });
-    document.addEventListener('keydown', warmUp, { once: true });
 
-    // All sounds schedule slightly ahead to survive async resume
-    function now() {
-        return getAudioCtx().currentTime + (audioReady ? 0.01 : 0.08);
-    }
+    // Start button — AudioContext created and unlocked inside the click gesture.
+    // After this, the hardware is warm for all subsequent sounds.
+    document.getElementById('start-btn').addEventListener('click', () => {
+        if (!actx) actx = new AudioCtx();
+        const ctx = actx;
+        // Silent buffer — unlocks audio hardware on iOS Safari
+        const buf = ctx.createBuffer(1, 1, ctx.sampleRate);
+        const src = ctx.createBufferSource();
+        src.buffer = buf;
+        src.connect(ctx.destination);
+        src.start(0);
+        if (ctx.state !== 'running') ctx.resume();
+        document.getElementById('start-overlay').style.display = 'none';
+    });
 
     // Short "clunk" when a syllable clicks into the wagon
-    function playClunk() {
-        const ctx = getAudioCtx();
-        const t = now();
+    async function playClunk() {
+        const ctx = await readyCtx();
+        const t = ctx.currentTime + 0.01;
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.connect(gain); gain.connect(ctx.destination);
@@ -486,9 +500,9 @@
     }
 
     // Buzzer for wrong pick
-    function playWrong() {
-        const ctx = getAudioCtx();
-        const t = now();
+    async function playWrong() {
+        const ctx = await readyCtx();
+        const t = ctx.currentTime + 0.01;
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.connect(gain); gain.connect(ctx.destination);
@@ -501,32 +515,27 @@
     }
 
     // Train whistle — two classic "woo-woo" blasts with harmonic richness
-    function playWhistle() {
-        const ctx = getAudioCtx();
-        const t0 = now();
+    async function playWhistle() {
+        const ctx = await readyCtx();
+        const t0 = ctx.currentTime + 0.01;
 
-        // Shared compressor so multiple harmonics don't clip
         const comp = ctx.createDynamicsCompressor();
         comp.threshold.value = -6;
         comp.ratio.value = 4;
         comp.connect(ctx.destination);
 
         function blast(startT, dur, rootHz) {
-            // 3 harmonics: fundamental + octave + fifth-above-octave
             const freqs   = [rootHz, rootHz * 2, rootHz * 3];
             const volumes = [0.35,   0.15,        0.08];
-
             freqs.forEach((f, i) => {
                 const osc  = ctx.createOscillator();
                 const gain = ctx.createGain();
                 osc.connect(gain); gain.connect(comp);
                 osc.type = 'sine';
-                // Slight downward bend at the end (steam pressure dropping)
                 osc.frequency.setValueAtTime(f * 1.02, startT);
                 osc.frequency.linearRampToValueAtTime(f,        startT + 0.05);
                 osc.frequency.setValueAtTime(f,                 startT + dur - 0.1);
                 osc.frequency.linearRampToValueAtTime(f * 0.96, startT + dur);
-                // ADSR
                 gain.gain.setValueAtTime(0, startT);
                 gain.gain.linearRampToValueAtTime(volumes[i],  startT + 0.04);
                 gain.gain.setValueAtTime(volumes[i],           startT + dur - 0.08);
@@ -535,14 +544,14 @@
             });
         }
 
-        blast(t0,        0.30, 622);   // blast 1 — short  (D#5 root)
-        blast(t0 + 0.42, 0.52, 622);   // blast 2 — longer, same pitch
+        blast(t0,        0.30, 622);
+        blast(t0 + 0.42, 0.52, 622);
     }
 
     // Rhythmic chug-chug while train departs
-    function playChugging(durationMs) {
-        const ctx = getAudioCtx();
-        const t0 = now();
+    async function playChugging(durationMs) {
+        const ctx = await readyCtx();
+        const t0 = ctx.currentTime + 0.01;
         const interval = 0.25;
         const steps = Math.floor(durationMs / (interval * 1000));
 
@@ -578,9 +587,9 @@
     }
 
     // Fanfare on game complete
-    function playFanfare() {
-        const ctx = getAudioCtx();
-        const t0 = now();
+    async function playFanfare() {
+        const ctx = await readyCtx();
+        const t0 = ctx.currentTime + 0.01;
         const notes = [523, 659, 784, 1047];
         notes.forEach((freq, i) => {
             const t = t0 + i * 0.18;
