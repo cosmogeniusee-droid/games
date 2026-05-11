@@ -354,6 +354,7 @@
         // Check if correct
         if (chosenItem.origIdx === pos) {
             // Correct!
+            playClunk();
             selected.push(btnIdx);
             btnEls[btnIdx].classList.add('used');
 
@@ -373,6 +374,7 @@
             }
         } else {
             // Wrong — flash the button and the next slot red
+            playWrong();
             btnEls[btnIdx].style.background = 'linear-gradient(145deg,#ef5350,#e53935)';
             slotEls[pos].classList.add('wrong');
             setTimeout(() => {
@@ -385,6 +387,10 @@
     function onWordComplete() {
         // Show full word
         wordDisplay.textContent = currentSyllables.join('');
+
+        // Whistle + chugging
+        playWhistle();
+        playChugging(1200);
 
         // Smoke puff
         const smoke = document.createElement('span');
@@ -407,6 +413,7 @@
     }
 
     function onGameComplete() {
+        playFanfare();
         train.classList.remove('choo');
         progressBar.style.width = '100%';
         progressText.textContent = '🎉 Все слова собраны!';
@@ -438,6 +445,114 @@
     });
 
     loadWord(0);
+
+    // ── Sound engine (Web Audio API) ────────────────────────────────────────
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let actx = null;
+
+    function getAudioCtx() {
+        if (!actx) actx = new AudioCtx();
+        if (actx.state === 'suspended') actx.resume();
+        return actx;
+    }
+
+    // Short "clunk" when a syllable clicks into the wagon
+    function playClunk() {
+        const ctx = getAudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(180, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.12);
+        gain.gain.setValueAtTime(0.35, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.15);
+    }
+
+    // Buzzer for wrong pick
+    function playWrong() {
+        const ctx = getAudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(160, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.25);
+        gain.gain.setValueAtTime(0.3, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.25);
+    }
+
+    // Train whistle (two-tone: fundamental + harmonic sweep)
+    function playWhistle() {
+        const ctx = getAudioCtx();
+        const now = ctx.currentTime;
+
+        [[520, 780], [440, 660]].forEach(([f1, f2], i) => {
+            const t = now + i * 0.45;
+            [f1, f2].forEach(freq => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain); gain.connect(ctx.destination);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq * 0.95, t);
+                osc.frequency.linearRampToValueAtTime(freq * 1.05, t + 0.12);
+                osc.frequency.linearRampToValueAtTime(freq, t + 0.38);
+                gain.gain.setValueAtTime(0, t);
+                gain.gain.linearRampToValueAtTime(0.25, t + 0.04);
+                gain.gain.setValueAtTime(0.25, t + 0.3);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + 0.42);
+                osc.start(t);
+                osc.stop(t + 0.43);
+            });
+        });
+    }
+
+    // Rhythmic chug-chug while train departs
+    function playChugging(durationMs) {
+        const ctx = getAudioCtx();
+        const steps = Math.floor(durationMs / 160);
+        for (let i = 0; i < steps; i++) {
+            const t = ctx.currentTime + i * 0.16;
+            // Noise burst via oscillator
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            const filter = ctx.createBiquadFilter();
+            osc.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
+            osc.type = 'sawtooth';
+            filter.type = 'bandpass';
+            filter.frequency.value = 220 + (i % 2) * 80;
+            filter.Q.value = 1.5;
+            osc.frequency.setValueAtTime(110, t);
+            gain.gain.setValueAtTime(0.18, t);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.13);
+            osc.start(t);
+            osc.stop(t + 0.14);
+        }
+    }
+
+    // Fanfare on game complete
+    function playFanfare() {
+        const ctx = getAudioCtx();
+        const notes = [523, 659, 784, 1047]; // C5 E5 G5 C6
+        notes.forEach((freq, i) => {
+            const t = ctx.currentTime + i * 0.18;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.type = 'triangle';
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0, t);
+            gain.gain.linearRampToValueAtTime(0.3, t + 0.04);
+            gain.gain.setValueAtTime(0.3, t + 0.12);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+            osc.start(t);
+            osc.stop(t + 0.36);
+        });
+    }
 </script>
 </body>
 </html>
