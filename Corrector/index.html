@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вредный гном — Корректор</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #fce4ec;
+            overflow-x: hidden;
+        }
+
+        /* ── Sentence display ───────────────────────────────────── */
+        #sentence-area {
+            font-size: 2rem;
+            line-height: 2.6;
+            text-align: center;
+            padding: 12px 8px 24px;
+            min-height: 120px;
+        }
+
+        /* Error words rendered as invisible buttons */
+        .word-btn {
+            font: inherit;
+            background: none;
+            border: none;
+            padding: 1px 2px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: inline;
+            transition: background 0.12s;
+        }
+        .word-btn:hover {
+            background: rgba(233, 30, 99, 0.1);
+        }
+        .word-btn.found {
+            pointer-events: none;
+        }
+        .word-btn.shake {
+            animation: shake-w 0.3s ease;
+        }
+        @keyframes shake-w {
+            0%,100% { transform: translateX(0); }
+            25%      { transform: translateX(-6px); }
+            75%      { transform: translateX(6px); }
+        }
+
+        /* Correction display inside button */
+        .strike {
+            text-decoration: line-through;
+            color: #c62828;
+            font-size: 0.82em;
+        }
+        .fix {
+            color: #2e7d32;
+            font-weight: bold;
+            animation: pop 0.35s ease;
+        }
+        @keyframes pop {
+            0%   { transform: scale(0.5); opacity: 0; }
+            65%  { transform: scale(1.25); }
+            100% { transform: scale(1);   opacity: 1; }
+        }
+
+        /* ── Gnome ──────────────────────────────────────────────── */
+        #gnome {
+            font-size: 3.5rem;
+            position: fixed;
+            right: 20px;
+            bottom: 60px;
+            user-select: none;
+            transition: transform 0.2s;
+        }
+        #gnome.bounce { animation: g-bounce 0.45s ease; }
+        @keyframes g-bounce {
+            0%,100% { transform: translateY(0) rotate(0deg); }
+            35%     { transform: translateY(-22px) rotate(-18deg); }
+            65%     { transform: translateY(-10px) rotate(12deg); }
+        }
+        #gnome.flee { animation: g-flee 0.9s ease forwards; }
+        @keyframes g-flee {
+            0%   { transform: translateX(0); opacity: 1; }
+            100% { transform: translateX(220px); opacity: 0; }
+        }
+
+        /* ── Progress ───────────────────────────────────────────── */
+        #progress-bar-wrap {
+            height: 10px;
+            background: #fce4ec;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        #progress-bar {
+            height: 100%;
+            background: #e91e63;
+            border-radius: 5px;
+            transition: width 0.4s ease;
+        }
+        #errors-badge {
+            font-size: 1rem;
+            font-weight: bold;
+            color: #c62828;
+            min-width: 50px;
+        }
+        #mistakes-badge {
+            font-size: 1rem;
+            font-weight: bold;
+            color: #e65100;
+            min-width: 50px;
+        }
+        .word-btn.wrong-flash {
+            animation: wrong-flash 0.4s ease;
+        }
+        @keyframes wrong-flash {
+            0%,100% { background: none; }
+            30%     { background: rgba(230,81,0,0.18); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container py-3" style="max-width: 700px;">
+    <h1 class="text-center mb-2">🔍 Вредный гном</h1>
+
+    <div class="d-flex justify-content-between align-items-center mb-1">
+        <span id="progress-text" class="text-muted small"></span>
+        <div class="d-flex align-items-center gap-2">
+            <span id="errors-badge"></span>
+            <span id="mistakes-badge"></span>
+            <button id="hint-btn" class="btn btn-sm btn-outline-danger">💡 Подсказка</button>
+            <button id="fullscreen-btn" class="btn btn-sm btn-primary">Full Screen</button>
+        </div>
+    </div>
+    <div id="progress-bar-wrap" class="mb-2"><div id="progress-bar" style="width:0%"></div></div>
+
+    <div id="gnome-speech" class="text-center fst-italic text-danger mb-1" style="min-height:1.4rem;font-size:0.95rem;"></div>
+
+    <div id="sentence-area"></div>
+
+    <p class="text-center text-muted small mt-1">Найди слова, в которых гном заменил букву, и нажми на них!</p>
+</div>
+
+<div id="gnome">🧌</div>
+
+<!-- Start overlay -->
+<div id="start-overlay" style="position:fixed;inset:0;background:rgba(252,228,236,0.97);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;">
+    <div style="font-size:5rem;margin-bottom:12px;">🧌</div>
+    <h2 style="color:#c62828;margin-bottom:8px;">Вредный гном</h2>
+    <p style="text-align:center;max-width:320px;color:#555;margin-bottom:24px;font-size:1.05rem;">
+        Гном пробрался в текст и заменил буквы в словах.<br>Найди все ошибки и исправь их!
+    </p>
+    <button id="start-btn" style="font-size:1.5rem;padding:14px 44px;border:none;border-radius:14px;background:linear-gradient(145deg,#e91e63,#f06292);color:#fff;box-shadow:0 6px 0 #c62828,0 8px 16px rgba(0,0,0,.2);cursor:pointer;">▶ Начать игру</button>
+</div>
+
+<script>
+    const defaultSentences = [
+        'Кошка пьёт {мочоко|молоко}.',
+        'Собака {грызот|грызёт} большую кость.',
+        'Мама купила {крусный|красный} шар.',
+        'Папа читает {книгу|книгу} и пьёт {чай|чай}.',
+    ];
+
+    const params = new URLSearchParams(window.location.search);
+    const sentences = params.get('sentences')
+        ? params.get('sentences').split('~').map(s => s.trim()).filter(Boolean)
+        : defaultSentences;
+
+    const bgColor = params.get('bgcolor') ? `#${params.get('bgcolor')}` : '#fce4ec';
+    const bgImage = params.get('bg') ? `url(${params.get('bg')})` : '';
+    document.body.style.setProperty('background-color', bgColor, 'important');
+    if (bgImage) {
+        document.body.style.setProperty('background-image', bgImage, 'important');
+        document.body.style.setProperty('background-size', 'cover', 'important');
+        document.body.style.setProperty('background-position', 'center', 'important');
+    }
+
+    // Parse {wrong|correct} markup
+    function parseMarkup(markup) {
+        const tokens = [];
+        const re = /\{([^|]+)\|([^}]+)\}|([^{]+)/g;
+        let m;
+        while ((m = re.exec(markup)) !== null) {
+            if (m[1] !== undefined) {
+                tokens.push({ type: 'error', wrong: m[1], correct: m[2] });
+            } else {
+                tokens.push({ type: 'text', text: m[3] });
+            }
+        }
+        return tokens;
+    }
+
+    let currentIdx  = 0;
+    let errorBtns   = [];
+    let mistakeCount = 0;
+
+    const sentenceArea = document.getElementById('sentence-area');
+    const progressBar  = document.getElementById('progress-bar');
+    const progressText = document.getElementById('progress-text');
+    const errorsBadge   = document.getElementById('errors-badge');
+    const mistakesBadge = document.getElementById('mistakes-badge');
+    const gnomeSpeech   = document.getElementById('gnome-speech');
+    const gnomeEl      = document.getElementById('gnome');
+
+    const gnomeLines = [
+        'Хе-хе, не найдёшь!',
+        'Ищи-ищи...',
+        'Может, не заметишь?',
+        'Ха! Я хитрый!',
+        'Попробуй поймай!',
+        'Ну и зоркий глаз!',
+    ];
+
+    function loadSentence(idx) {
+        const tokens = parseMarkup(sentences[idx]);
+        errorBtns = [];
+        sentenceArea.innerHTML = '';
+
+        progressText.textContent = `Предложение ${idx + 1} из ${sentences.length}`;
+        progressBar.style.width  = `${(idx / sentences.length) * 100}%`;
+
+        tokens.forEach(tok => {
+            if (tok.type === 'text') {
+                // Split plain text into individual words+spaces so each word is tappable
+                const parts = tok.text.split(/(\S+)/); // alternates: space-run, word, space-run…
+                parts.forEach(part => {
+                    if (!part) return;
+                    if (/\S/.test(part)) {
+                        // Non-space: make a tappable "correct" word button
+                        const btn = document.createElement('button');
+                        btn.className = 'word-btn correct-word';
+                        btn.textContent = part;
+                        btn.addEventListener('click', () => onCorrectClick(btn));
+                        sentenceArea.appendChild(btn);
+                    } else {
+                        sentenceArea.appendChild(document.createTextNode(part));
+                    }
+                });
+            } else {
+                const btn = document.createElement('button');
+                btn.className = 'word-btn';
+                btn.textContent = tok.wrong;
+                btn.addEventListener('click', () => onErrorClick(btn, tok.wrong, tok.correct));
+                sentenceArea.appendChild(btn);
+                errorBtns.push(btn);
+            }
+        });
+
+        updateBadge();
+        gnomeSpeech.textContent = gnomeLines[Math.floor(Math.random() * gnomeLines.length)];
+        gnomeEl.className = '';
+    }
+
+    function updateBadge() {
+        const n = errorBtns.filter(b => !b.classList.contains('found')).length;
+        errorsBadge.textContent  = n > 0 ? `❌ ${n}` : '';
+        mistakesBadge.textContent = mistakeCount > 0 ? `🤦 ${mistakeCount}` : '';
+    }
+
+    function onCorrectClick(btn) {
+        if (btn.classList.contains('wrong-flash')) return;
+        mistakeCount++;
+        updateBadge();
+        playWrong();
+        btn.classList.add('wrong-flash');
+        setTimeout(() => btn.classList.remove('wrong-flash'), 420);
+    }
+
+    function onErrorClick(btn, wrongText, correct) {
+        if (btn.classList.contains('found')) return;
+        playCorrect();
+        btn.classList.add('found');
+
+        btn.textContent = '';
+        const s = document.createElement('span');
+        s.className = 'strike';
+        s.textContent = wrongText;
+        const f = document.createElement('span');
+        f.className = 'fix';
+        f.textContent = correct;
+        btn.append(s, '\u00a0', f);
+
+        gnomeEl.classList.remove('bounce', 'flee');
+        void gnomeEl.offsetWidth;
+        gnomeEl.classList.add('bounce');
+
+        updateBadge();
+        const remaining = errorBtns.filter(b => !b.classList.contains('found')).length;
+        if (remaining === 0) {
+            setTimeout(onSentenceComplete, 600);
+        }
+    }
+
+    function onSentenceComplete() {
+        playFanfare();
+        gnomeSpeech.textContent = 'Пойман! Нечестно!';
+        gnomeEl.classList.remove('bounce');
+        void gnomeEl.offsetWidth;
+        gnomeEl.classList.add('flee');
+        setTimeout(() => {
+            currentIdx++;
+            if (currentIdx < sentences.length) {
+                gnomeEl.className = '';
+                loadSentence(currentIdx);
+            } else {
+                onGameComplete();
+            }
+        }, 1100);
+    }
+
+    function onGameComplete() {
+        playGameComplete();
+        progressBar.style.width  = '100%';
+        progressText.textContent = '🎉 Все ошибки найдены!';
+        errorsBadge.textContent  = '';
+        mistakesBadge.textContent = '';
+        gnomeSpeech.textContent  = '';
+        gnomeEl.style.display    = 'none';
+        const mistakeNote = mistakeCount === 0
+            ? 'Ни одной лишней ошибки! 🌟'
+            : `Лишних нажатий: ${mistakeCount}`;
+        sentenceArea.innerHTML   = `<div class="text-success fw-bold fs-3 text-center py-4">Молодец!<br>Все ошибки гнома исправлены! 🎉<br><span class="fs-5 text-muted">${mistakeNote}</span></div>`;
+    }
+
+    document.getElementById('hint-btn').addEventListener('click', () => {
+        const unfound = errorBtns.filter(b => !b.classList.contains('found'));
+        if (!unfound.length) return;
+        const btn = unfound[0];
+        btn.style.outline = '3px solid #e91e63';
+        btn.style.borderRadius = '4px';
+        setTimeout(() => { btn.style.outline = ''; }, 1000);
+    });
+
+    const fsBtn = document.getElementById('fullscreen-btn');
+    fsBtn.addEventListener('click', () => {
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+        else document.exitFullscreen();
+    });
+    document.addEventListener('fullscreenchange', () => {
+        fsBtn.textContent = document.fullscreenElement ? 'Exit Full Screen' : 'Full Screen';
+    });
+
+    loadSentence(0);
+
+    // ── Audio ────────────────────────────────────────────────────────────────
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let actx = null;
+    function getAudioCtx() { if (!actx) actx = new AudioCtx(); return actx; }
+
+    async function readyCtx() {
+        const ctx = getAudioCtx();
+        if (ctx.state !== 'running') await ctx.resume();
+        return ctx;
+    }
+
+    document.getElementById('start-btn').addEventListener('click', () => {
+        if (!actx) actx = new AudioCtx();
+        const ctx = actx;
+        const buf = ctx.createBuffer(1, 1, ctx.sampleRate);
+        const src = ctx.createBufferSource();
+        src.buffer = buf; src.connect(ctx.destination); src.start(0);
+        if (ctx.state !== 'running') ctx.resume();
+        document.getElementById('start-overlay').style.display = 'none';
+    });
+
+    async function playWrong() {
+        const ctx = await readyCtx();
+        const t = ctx.currentTime + 0.01;
+        const osc = ctx.createOscillator();
+        const g   = ctx.createGain();
+        osc.connect(g); g.connect(ctx.destination);
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(220, t);
+        osc.frequency.exponentialRampToValueAtTime(140, t + 0.2);
+        g.gain.setValueAtTime(0.25, t);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+        osc.start(t); osc.stop(t + 0.23);
+    }
+
+    async function playCorrect() {
+        const ctx = await readyCtx();
+        const t = ctx.currentTime + 0.01;
+        const osc = ctx.createOscillator();
+        const g   = ctx.createGain();
+        osc.connect(g); g.connect(ctx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(660, t);
+        osc.frequency.linearRampToValueAtTime(1100, t + 0.1);
+        g.gain.setValueAtTime(0.3, t);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+        osc.start(t); osc.stop(t + 0.41);
+    }
+
+    async function playFanfare() {
+        const ctx = await readyCtx();
+        const t0 = ctx.currentTime + 0.01;
+        [523, 659, 784, 1047].forEach((freq, i) => {
+            const t = t0 + i * 0.16;
+            const osc = ctx.createOscillator();
+            const g   = ctx.createGain();
+            osc.connect(g); g.connect(ctx.destination);
+            osc.type = 'triangle';
+            osc.frequency.value = freq;
+            g.gain.setValueAtTime(0, t);
+            g.gain.linearRampToValueAtTime(0.28, t + 0.04);
+            g.gain.setValueAtTime(0.28, t + 0.1);
+            g.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+            osc.start(t); osc.stop(t + 0.31);
+        });
+    }
+
+    async function playGameComplete() {
+        const ctx = await readyCtx();
+        const t0 = ctx.currentTime + 0.01;
+        [523, 659, 784, 880, 1047, 1320].forEach((freq, i) => {
+            const t = t0 + i * 0.13;
+            const osc = ctx.createOscillator();
+            const g   = ctx.createGain();
+            osc.connect(g); g.connect(ctx.destination);
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            g.gain.setValueAtTime(0, t);
+            g.gain.linearRampToValueAtTime(0.3, t + 0.03);
+            g.gain.setValueAtTime(0.3, t + 0.09);
+            g.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+            osc.start(t); osc.stop(t + 0.36);
+        });
+    }
+</script>
+</body>
+</html>

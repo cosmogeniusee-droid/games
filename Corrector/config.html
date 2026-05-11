@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вредный гном — Настройка</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .preview-line .error-word {
+            color: #c62828;
+            border-bottom: 2px solid #e91e63;
+        }
+        .preview-line .correct-hint {
+            font-size: 0.75em;
+            color: #888;
+        }
+        textarea.sentence-input { resize: vertical; }
+        #sentence-rows { max-height: 420px; overflow-y: auto; }
+    </style>
+</head>
+<body class="bg-light">
+
+<div class="container mt-4">
+    <h1 class="mb-2">🧌 Вредный гном — Настройка</h1>
+    <p class="text-muted mb-3">Создайте ссылку на игру «Корректор»</p>
+
+    <div class="row g-4">
+        <!-- Left: settings -->
+        <div class="col-lg-5">
+
+            <div class="alert alert-info small mb-3">
+                <strong>Формат:</strong> <code>{неправильно|правильно}</code><br>
+                Пример: <code>Кошка пьёт {мочоко|молоко}.</code>
+            </div>
+
+            <div id="sentence-rows" class="mb-2"></div>
+            <button id="add-btn" class="btn btn-outline-secondary btn-sm mb-3">+ Добавить предложение</button>
+
+            <div class="card mb-3">
+                <div class="card-body py-2">
+                    <h6 class="card-title mb-2">Оформление</h6>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <label class="form-label small mb-1">Цвет фона</label>
+                            <input type="color" id="bgcolor" class="form-control form-control-color form-control-sm w-100" value="#fce4ec">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small mb-1">Фон (URL)</label>
+                            <input type="url" id="bgimage" class="form-control form-control-sm" placeholder="https://...">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-body py-2">
+                    <label class="form-label small fw-bold mb-1">Ссылка на игру:</label>
+                    <div class="input-group input-group-sm">
+                        <input type="text" id="url-output" class="form-control font-monospace" readonly>
+                        <button id="copy-btn" class="btn btn-primary">Копировать</button>
+                    </div>
+                </div>
+            </div>
+
+            <a id="game-link" href="index.html" target="_blank" class="btn btn-success w-100">🚀 Открыть игру</a>
+        </div>
+
+        <!-- Right: preview iframe -->
+        <div class="col-lg-7">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Превью</h5>
+                    <div class="ratio ratio-1x1 border rounded">
+                        <iframe id="preview-frame" src="index.html" title="Превью игры"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const BASE_URL  = 'https://cosmogeniusee-droid.github.io/games/Corrector/index.html';
+    const LOCAL_URL = 'index.html';
+
+    const defaultSentences = [
+        'Кошка пьёт {мочоко|молоко}.',
+        'Собака {грызот|грызёт} большую кость.',
+        'Мама купила {крусный|красный} шар.',
+    ];
+
+    let rows = [];
+
+    // ── Parse & preview ──────────────────────────────────────────────────────
+    function renderPreviewHtml(markup) {
+        if (!markup.trim()) return '<span class="text-muted">(пусто)</span>';
+        // Highlight error words with underline, show correct word as tooltip/hint
+        return markup.replace(/\{([^|]+)\|([^}]+)\}/g, (_, wrong, correct) =>
+            `<span class="error-word" title="Правильно: ${correct}">${wrong}</span>`
+            + `<span class="correct-hint"> (${correct})</span>`
+        );
+    }
+
+    function countErrors(markup) {
+        return (markup.match(/\{[^|]+\|[^}]+\}/g) || []).length;
+    }
+
+    // ── Row management ───────────────────────────────────────────────────────
+    function createRow(markup = '') {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'card mb-3';
+        wrapper.innerHTML = `
+            <div class="card-body">
+                <div class="d-flex gap-2 mb-2 align-items-start">
+                    <div class="flex-grow-1">
+                        <textarea class="form-control sentence-input" rows="2"
+                            placeholder="Кошка пьёт {мочоко|молоко} и ест {рыпу|рыбу}."></textarea>
+                        <div class="form-text">
+                            Ошибочное слово: <code>{неправильно|правильно}</code>
+                        </div>
+                    </div>
+                    <button class="btn btn-outline-danger remove-btn mt-1" title="Удалить">✕</button>
+                </div>
+                <div class="preview-line border rounded p-2 bg-white" style="font-size:1.15rem;min-height:2rem;"></div>
+                <div class="text-muted small mt-1 error-count"></div>
+            </div>`;
+
+        const textarea    = wrapper.querySelector('.sentence-input');
+        const previewLine = wrapper.querySelector('.preview-line');
+        const errorCount  = wrapper.querySelector('.error-count');
+        const removeBtn   = wrapper.querySelector('.remove-btn');
+
+        textarea.value = markup;
+
+        function update() {
+            const val = textarea.value;
+            previewLine.innerHTML = renderPreviewHtml(val);
+            const n = countErrors(val);
+            errorCount.textContent = n === 0
+                ? '⚠ Нет слов с ошибками — добавьте хотя бы одно в формате {неправильно|правильно}'
+                : `✅ Ошибок в предложении: ${n}`;
+            buildUrl();
+        }
+
+        textarea.addEventListener('input', update);
+        removeBtn.addEventListener('click', () => {
+            wrapper.remove();
+            rows = rows.filter(r => r !== rowObj);
+            buildUrl();
+        });
+
+        const rowObj = { wrapper, textarea, update };
+        rows.push(rowObj);
+        document.getElementById('sentence-rows').appendChild(wrapper);
+        update();
+        return rowObj;
+    }
+
+    // ── URL builder ──────────────────────────────────────────────────────────
+    function buildUrl() {
+        const parts = rows.map(r => r.textarea.value.trim()).filter(Boolean);
+        const localP = new URLSearchParams();
+        const fullP  = new URLSearchParams();
+
+        if (parts.length) { localP.set('sentences', parts.join('~')); fullP.set('sentences', parts.join('~')); }
+
+        const bgcolor = document.getElementById('bgcolor').value;
+        if (bgcolor.toLowerCase() !== '#fce4ec') { localP.set('bgcolor', bgcolor.replace('#','')); fullP.set('bgcolor', bgcolor.replace('#','')); }
+
+        const bgimage = document.getElementById('bgimage').value.trim();
+        if (bgimage) { localP.set('bg', bgimage); fullP.set('bg', bgimage); }
+
+        const localQs = localP.toString();
+        const fullQs  = fullP.toString();
+        const localUrl = localQs ? `${LOCAL_URL}?${localQs}` : LOCAL_URL;
+        const fullUrl  = fullQs  ? `${BASE_URL}?${fullQs}`   : BASE_URL;
+
+        document.getElementById('url-output').value = fullUrl;
+        document.getElementById('game-link').href   = localUrl;
+        document.getElementById('preview-frame').src = localUrl;
+    }
+
+    document.getElementById('add-btn').addEventListener('click', () => createRow());
+
+    document.getElementById('copy-btn').addEventListener('click', () => {
+        navigator.clipboard.writeText(document.getElementById('url-output').value).then(() => {
+            const btn = document.getElementById('copy-btn');
+            btn.textContent = '✅ Скопировано!';
+            setTimeout(() => { btn.textContent = 'Копировать'; }, 2000);
+        });
+    });
+
+    document.getElementById('bgcolor').addEventListener('input', buildUrl);
+    document.getElementById('bgimage').addEventListener('input', buildUrl);
+
+    // Init with default sentences
+    defaultSentences.forEach(s => createRow(s));
+</script>
+</body>
+</html>

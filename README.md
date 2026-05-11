@@ -35,3 +35,6 @@
 
 * [Слоговой поезд](/SyllableTrain/index.html)
 * [Слоговой поезд (Создание ссылки)](/SyllableTrain/config.html)
+
+* [Вредный гном — Корректор](/Corrector/index.html)
+* [Вредный гном — Корректор (Создание ссылки)](/Corrector/config.html)
