@@ -23,3 +23,6 @@
 
 * [Пазл](/Puzzle/index.html)
 * [Пазл (Создание ссылки)](/Puzzle/config.html)
+
+* [Половинки](/HalfChar/index.html)
+* [Половинки (Создание ссылки)](/HalfChar/config.html)
