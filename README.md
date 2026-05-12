@@ -1,40 +1,25 @@
-* [Квадрат Шульте](/SchulteTable/index.html)
-* [Квадрат Шульте (Создание ссылки)](/SchulteTable/config.html)
+* [Квадрат Шульте](/SchulteTable/config.html)
 
-* [Анаграмма](/Anagram/index.html)
-
-* [Ползунок](/Slider/index.html)
 * [Ползунок(Создание ссылки)](/Slider/config.html)
 
-* [Вращающийся текст](/TextRotator/index.html)
-* [Вращающийся текст (Создание ссылки)](/TextRotator/config.html)
+* [Вращающийся текст](/TextRotator/config.html)
 
-* [Поиск буквы](/FindChar/index.html)
-* [Поиск буквы (Создание ссылки)](/FindChar/config.html)
+* [Поиск буквы](/FindChar/config.html)
 
-* [Поиск фигуры](/FindFigure/index.html)
-* [Поиск фигуры (Создание ссылки)](/FindFigure/config.html)
+* [Поиск фигуры](/FindFigure/config.html)
 
-* [Вращающийся Рассказ](/CharRotator/index.html)
-* [Вращающийся Рассказ (Создание ссылки)](/CharRotator/config.html)
+* [Вращающийся Рассказ](/CharRotator/config.html)
 
-* [Цветной Рассказ](/CharColorizer/index.html)
-* [Цветной Рассказ (Создание ссылки)](/CharColorizer/config.html)
+* [Цветной Рассказ](/CharColorizer/config.html)
 
-* [Пазл](/Puzzle/index.html)
-* [Пазл (Создание ссылки)](/Puzzle/config.html)
+* [Пазл](/Puzzle/config.html)
 
-* [Половинки](/HalfChar/index.html)
-* [Половинки (Создание ссылки)](/HalfChar/config.html)
+* [Половинки](/HalfChar/config.html)
 
-* [Пиктограммы](/Pictograms/index.html)
-* [Пиктограммы (Создание ссылки)](/Pictograms/config.html)
+* [Пиктограммы](/Pictograms/config.html)
 
-* [Словесные прятки](/WordHide/index.html)
-* [Словесные прятки (Создание ссылки)](/WordHide/config.html)
+* [Словесные прятки](/WordHide/config.html)
 
-* [Слоговой поезд](/SyllableTrain/index.html)
-* [Слоговой поезд (Создание ссылки)](/SyllableTrain/config.html)
+* [Слоговой поезд](/SyllableTrain/config.html)
 
-* [Вредный гном — Корректор](/Corrector/index.html)
-* [Вредный гном — Корректор (Создание ссылки)](/Corrector/config.html)
+* [Вредный гном — Корректор](/Corrector/config.html)
