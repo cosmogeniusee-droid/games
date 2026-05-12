@@ -1,25 +1,13 @@
 * [Квадрат Шульте](/SchulteTable/config.html)
-
 * [Ползунок(Создание ссылки)](/Slider/config.html)
-
 * [Вращающийся текст](/TextRotator/config.html)
-
 * [Поиск буквы](/FindChar/config.html)
-
 * [Поиск фигуры](/FindFigure/config.html)
-
 * [Вращающийся Рассказ](/CharRotator/config.html)
-
 * [Цветной Рассказ](/CharColorizer/config.html)
-
 * [Пазл](/Puzzle/config.html)
-
 * [Половинки](/HalfChar/config.html)
-
 * [Пиктограммы](/Pictograms/config.html)
-
 * [Словесные прятки](/WordHide/config.html)
-
 * [Слоговой поезд](/SyllableTrain/config.html)
-
 * [Вредный гном — Корректор](/Corrector/config.html)
