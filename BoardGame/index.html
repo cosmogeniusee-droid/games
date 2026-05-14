@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Настольная игра</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<button id="fullscreen-btn" title="Полный экран">🎮</button>
+
+<div class="game-wrapper">
+
+    <!-- ── Board ───────────────────────────────────────── -->
+    <div class="board-container">
+        <div class="board-title" id="game-title">🎲 Настольная игра</div>
+        <div id="game-board"></div>
+    </div>
+
+    <!-- ── Controls ────────────────────────────────────── -->
+    <div class="controls-panel">
+
+        <div class="controls-title">Управление</div>
+
+        <!-- Position info -->
+        <div class="current-player-card">
+            <div class="current-player-label">Текущая клетка</div>
+            <div class="current-player-name" id="player-pos" style="color:#764ba2">1</div>
+            <div style="font-size:0.8em;color:#aaa" id="player-skip"></div>
+        </div>
+
+        <!-- Dice -->
+        <div class="dice-area">
+            <div class="dice" id="dice">⚀</div>
+            <button id="roll-btn" disabled>🎲 Бросить кубик</button>
+        </div>
+
+        <!-- Message -->
+        <div id="game-message">Загрузка игры…</div>
+
+    </div>
+</div>
+
+<!-- ── Task modal ──────────────────────────────────────── -->
+<div class="modal-overlay" id="task-modal">
+    <div class="modal-box">
+        <div class="modal-icon">📋</div>
+        <div class="modal-title">Задание!</div>
+        <div class="modal-sub" id="task-modal-sub"></div>
+        <div class="modal-task-text" id="task-modal-text"></div>
+        <button class="modal-btn" id="task-done-btn">✅ Выполнено!</button>
+    </div>
+</div>
+
+<!-- ── Special cell modal ─────────────────────────────── -->
+<div class="modal-overlay" id="special-modal">
+    <div class="modal-box">
+        <div class="modal-icon" id="special-modal-icon">⚡</div>
+        <div class="modal-title" id="special-modal-title">Особая клетка!</div>
+        <div class="modal-task-text" id="special-modal-text"></div>
+        <button class="modal-btn modal-btn-warn" id="special-ok-btn">Понятно!</button>
+    </div>
+</div>
+
+<!-- ── Win modal ──────────────────────────────────────── -->
+<div class="modal-overlay" id="win-modal">
+    <div class="modal-box win-modal-box">
+        <div class="modal-icon">🏆</div>
+        <div class="modal-title" id="win-title">Финиш!</div>
+        <div class="modal-task-text" id="win-text"></div>
+        <button class="modal-btn" id="win-continue-btn">🎉 Ура!</button>
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

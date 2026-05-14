@@ -3,6 +3,7 @@
 ## Do not show thinking process
 
 Do not show your thinking process or reasoning steps. Only provide the final code output.
+Show only the final result.
 
 ## File Encoding
 
