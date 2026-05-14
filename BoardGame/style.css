@@ -1,16 +1,44 @@
-@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap');
+﻿@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap');
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
     font-family: 'Nunito', sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #020818;
     min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 10px;
     overflow-x: hidden;
+    position: relative;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+        radial-gradient(ellipse 60% 40% at 15% 60%, rgba(20,10,80,0.7) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 50% at 85% 25%, rgba(60,0,80,0.5) 0%, transparent 60%),
+        radial-gradient(ellipse 80% 60% at 50% 80%, rgba(0,20,80,0.4) 0%, transparent 70%),
+        linear-gradient(135deg, #010510 0%, #080820 40%, #0e0530 70%, #020818 100%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+@keyframes twinkle {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.15; }
+}
+
+.star-bg {
+    position: fixed;
+    border-radius: 50%;
+    background: white;
+    pointer-events: none;
+    z-index: 0;
+    animation: twinkle var(--dur, 3s) infinite var(--delay, 0s);
 }
 
 /* ─── Layout ─────────────────────────────────────────── */
@@ -19,144 +47,173 @@ body {
     gap: 16px;
     align-items: flex-start;
     width: 100%;
-    max-width: 960px;
+    max-width: 1000px;
+    position: relative;
+    z-index: 1;
 }
 
 /* ─── Board ──────────────────────────────────────────── */
 .board-container {
-    background: white;
-    border-radius: 20px;
-    padding: 14px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    background: rgba(5, 10, 35, 0.88);
+    border-radius: 24px;
+    padding: 16px;
+    box-shadow:
+        0 0 0 1px rgba(80,160,255,0.18),
+        0 0 40px rgba(60,120,255,0.18),
+        0 20px 60px rgba(0,0,0,0.65);
     flex: 1;
     min-width: 0;
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(80,160,255,0.12);
+    overflow: visible;
 }
 
 .board-title {
     font-family: 'Fredoka One', cursive;
     text-align: center;
-    color: #764ba2;
+    color: #88c8ff;
     font-size: 1.4em;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
     letter-spacing: 0.5px;
+    text-shadow: 0 0 20px rgba(100,180,255,0.5);
 }
 
 #game-board {
-    display: grid;
-    gap: 4px;
+    position: relative;
+    overflow: visible;
 }
 
 /* ─── Cells ──────────────────────────────────────────── */
 .cell {
-    aspect-ratio: 1;
-    border-radius: 10px;
+    position: absolute;
+    border-radius: 50%;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    position: relative;
-    border: 2px solid rgba(0,0,0,0.12);
-    transition: transform 0.15s;
+    border: 2px solid rgba(255,255,255,0.15);
+    transition: transform 0.15s, box-shadow 0.15s;
     overflow: hidden;
-    padding: 3px;
     cursor: default;
     user-select: none;
 }
 
-.cell:hover { transform: scale(1.04); z-index: 2; }
+.cell:hover { transform: scale(1.14); z-index: 20; }
 
 .cell-number {
-    font-size: 0.65em;
+    font-size: 0.24em;
     font-weight: 800;
     line-height: 1;
-    color: rgba(0,0,0,0.45);
+    color: rgba(255,255,255,0.6);
+    position: absolute;
+    top: 10%;
+    left: 0; right: 0;
+    text-align: center;
 }
 
 .cell-icon {
-    font-size: 1.3em;
-    line-height: 1.1;
-}
-
-.cell-label {
-    font-size: 0.58em;
-    font-weight: 700;
-    text-align: center;
-    line-height: 1.15;
-    max-width: 100%;
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    color: rgba(0,0,0,0.6);
+    font-size: 0.38em;
+    line-height: 1;
+    margin-top: 3px;
 }
 
 /* Cell type colours */
-.cell-start   { background: linear-gradient(135deg, #43e97b, #38f9d7); border-color: #38f9d7; }
-.cell-finish  { background: linear-gradient(135deg, #f7971e, #ffd200); border-color: #f7971e; }
-.cell-task    { background: linear-gradient(135deg, #a1c4fd, #c2e9fb); border-color: #a1c4fd; }
-.cell-forward { background: linear-gradient(135deg, #f093fb, #f5576c); border-color: #f5576c; color: white; }
-.cell-back    { background: linear-gradient(135deg, #4facfe, #00f2fe); border-color: #4facfe; color: white; }
-.cell-skip    { background: linear-gradient(135deg, #bdbdbd, #e0e0e0); border-color: #bdbdbd; }
-.cell-empty   { background: #f7f7f7; border-color: #e0e0e0; }
-
-.cell-forward .cell-label,
-.cell-back    .cell-label { color: rgba(255,255,255,0.9); }
-.cell-forward .cell-number,
-.cell-back    .cell-number { color: rgba(255,255,255,0.6); }
+.cell-start {
+    background: radial-gradient(circle at 35% 35%, #1affaa, #009960);
+    border-color: rgba(0,230,140,0.6);
+    box-shadow: 0 0 14px rgba(0,224,138,0.65), 0 0 30px rgba(0,224,138,0.2);
+}
+.cell-finish {
+    background: radial-gradient(circle at 35% 35%, #ffe566, #ff9900);
+    border-color: rgba(255,210,0,0.7);
+    box-shadow: 0 0 16px rgba(255,200,0,0.7), 0 0 32px rgba(255,200,0,0.25);
+}
+.cell-task {
+    background: radial-gradient(circle at 35% 35%, #4aa8ff, #1a60d0);
+    border-color: rgba(74,168,255,0.5);
+    box-shadow: 0 0 12px rgba(74,158,255,0.55), 0 0 22px rgba(74,158,255,0.15);
+}
+.cell-forward {
+    background: radial-gradient(circle at 35% 35%, #ffaa44, #e05500);
+    border-color: rgba(255,130,20,0.6);
+    box-shadow: 0 0 13px rgba(255,120,0,0.65), 0 0 26px rgba(255,120,0,0.2);
+}
+.cell-back {
+    background: radial-gradient(circle at 35% 35%, #c05aff, #7000dd);
+    border-color: rgba(180,74,255,0.55);
+    box-shadow: 0 0 13px rgba(180,74,255,0.65), 0 0 26px rgba(180,74,255,0.2);
+}
+.cell-skip {
+    background: radial-gradient(circle at 35% 35%, #8898bb, #3a4a70);
+    border-color: rgba(120,150,200,0.4);
+    box-shadow: 0 0 8px rgba(100,140,200,0.3);
+}
+.cell-empty {
+    background: radial-gradient(circle at 35% 35%, #1c2e5a, #0c1632);
+    border-color: rgba(80,130,255,0.2);
+    box-shadow: 0 0 6px rgba(80,130,255,0.12);
+}
 
 /* Cell pulse on landing */
-.cell-active { animation: cellPulse 0.4s ease; }
+.cell-active { animation: cellPulse 0.45s ease; }
 @keyframes cellPulse {
     0%   { transform: scale(1); }
-    40%  { transform: scale(1.18); }
-    100% { transform: scale(1); }
+    40%  { transform: scale(1.28); filter: brightness(1.5); }
+    100% { transform: scale(1); filter: brightness(1); }
 }
 
 /* ─── Player tokens on board ─────────────────────────── */
 .players-on-cell {
     position: absolute;
-    bottom: 2px;
-    right: 2px;
+    inset: 0;
     display: flex;
-    flex-wrap: wrap;
-    gap: 1px;
-    max-width: 55%;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
 }
 
 .player-token {
-    width: 15px;
-    height: 15px;
+    width: 58%;
+    height: 58%;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 7px;
-    font-weight: 800;
+    font-size: 0.34em;
     color: white;
-    border: 1.5px solid rgba(255,255,255,0.85);
-    box-shadow: 0 1px 4px rgba(0,0,0,0.35);
-    transition: all 0.25s;
-    flex-shrink: 0;
+    border: 2px solid rgba(255,255,255,0.9);
+    box-shadow: 0 0 14px rgba(255,80,80,0.8), 0 2px 8px rgba(0,0,0,0.6);
+    animation: tokenPulse 1.6s ease-in-out infinite;
+}
+
+@keyframes tokenPulse {
+    0%, 100% { box-shadow: 0 0 12px rgba(255,80,80,0.7), 0 2px 8px rgba(0,0,0,0.6); }
+    50%       { box-shadow: 0 0 24px rgba(255,80,80,1.0), 0 2px 8px rgba(0,0,0,0.6); }
 }
 
 /* ─── Controls panel ─────────────────────────────────── */
 .controls-panel {
-    background: white;
+    background: rgba(5, 10, 35, 0.88);
     border-radius: 20px;
     padding: 18px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    box-shadow:
+        0 0 0 1px rgba(80,160,255,0.18),
+        0 20px 40px rgba(0,0,0,0.65);
     width: 210px;
     min-width: 210px;
     display: flex;
     flex-direction: column;
     gap: 14px;
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(80,160,255,0.12);
 }
 
 .controls-title {
     font-family: 'Fredoka One', cursive;
     text-align: center;
-    color: #764ba2;
+    color: #88c8ff;
     font-size: 1.2em;
+    text-shadow: 0 0 12px rgba(100,180,255,0.4);
 }
 
 /* Dice */
@@ -170,21 +227,19 @@ body {
 .dice {
     width: 72px;
     height: 72px;
-    background: white;
-    border: 3px solid #764ba2;
+    background: rgba(8,18,58,0.95);
+    border: 2px solid rgba(100,180,255,0.45);
     border-radius: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 3.2em;
-    box-shadow: 0 4px 16px rgba(118,75,162,0.25);
+    box-shadow: 0 0 16px rgba(80,160,255,0.3), inset 0 0 20px rgba(80,160,255,0.05);
     transition: transform 0.1s;
     line-height: 1;
 }
 
-.dice.rolling {
-    animation: diceRoll 0.65s ease-in-out;
-}
+.dice.rolling { animation: diceRoll 0.65s ease-in-out; }
 
 @keyframes diceRoll {
     0%   { transform: rotate(0deg)   scale(1); }
@@ -195,7 +250,7 @@ body {
 }
 
 #roll-btn {
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: linear-gradient(135deg, #1a70ff, #9b00ff);
     color: white;
     border: none;
     padding: 11px 0;
@@ -206,26 +261,26 @@ body {
     cursor: pointer;
     width: 100%;
     transition: all 0.18s;
-    box-shadow: 0 4px 12px rgba(118,75,162,0.4);
+    box-shadow: 0 4px 16px rgba(100,60,255,0.5);
     letter-spacing: 0.2px;
 }
 
-#roll-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(118,75,162,0.5); }
+#roll-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(100,60,255,0.75); }
 #roll-btn:active:not(:disabled) { transform: translateY(0); }
-#roll-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+#roll-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
 /* Current player */
 .current-player-card {
-    background: #f8f4ff;
+    background: rgba(15,30,90,0.65);
     border-radius: 10px;
     padding: 9px 10px;
     text-align: center;
-    border: 2px solid #e9d8ff;
+    border: 1px solid rgba(80,160,255,0.28);
 }
 
 .current-player-label {
     font-size: 0.72em;
-    color: #999;
+    color: rgba(150,200,255,0.65);
     margin-bottom: 3px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -234,63 +289,20 @@ body {
 .current-player-name {
     font-size: 1.1em;
     font-weight: 800;
+    color: #88c8ff;
 }
-
-/* Players list */
-.players-list {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.player-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 8px;
-    border-radius: 9px;
-    border: 2px solid transparent;
-    transition: all 0.25s;
-}
-
-.player-item.active-player {
-    border-color: #764ba2;
-    background: #f3eeff;
-}
-
-.player-item.finished-player {
-    opacity: 0.55;
-}
-
-.player-token-large {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 13px;
-    font-weight: 800;
-    color: white;
-    flex-shrink: 0;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.22);
-}
-
-.player-info { flex: 1; min-width: 0; }
-.player-name { font-size: 0.88em; font-weight: 800; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.player-pos  { font-size: 0.72em; color: #888; }
-.player-status { font-size: 0.9em; }
 
 /* Message */
 #game-message {
-    background: #f8f9fa;
+    background: rgba(15,30,90,0.55);
     border-radius: 10px;
     padding: 9px 10px;
     text-align: center;
     font-size: 0.82em;
-    color: #555;
+    color: rgba(180,220,255,0.85);
     min-height: 38px;
     line-height: 1.4;
+    border: 1px solid rgba(80,160,255,0.18);
 }
 
 /* ─── Modals ─────────────────────────────────────────── */
@@ -298,24 +310,29 @@ body {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.6);
+    background: rgba(0,0,20,0.78);
     z-index: 1000;
     align-items: center;
     justify-content: center;
     padding: 16px;
+    backdrop-filter: blur(5px);
 }
 
 .modal-overlay.show { display: flex; }
 
 .modal-box {
-    background: white;
+    background: linear-gradient(135deg, rgba(8,18,60,0.97), rgba(18,8,48,0.97));
     border-radius: 22px;
     padding: 30px 28px 24px;
     max-width: 440px;
     width: 100%;
     text-align: center;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    box-shadow:
+        0 0 0 1px rgba(100,180,255,0.22),
+        0 0 50px rgba(80,140,255,0.28),
+        0 20px 60px rgba(0,0,0,0.75);
     animation: modalIn 0.28s cubic-bezier(0.34,1.56,0.64,1);
+    border: 1px solid rgba(100,180,255,0.18);
 }
 
 @keyframes modalIn {
@@ -324,24 +341,24 @@ body {
 }
 
 .modal-icon   { font-size: 3em; margin-bottom: 8px; }
-.modal-title  { font-family: 'Fredoka One', cursive; font-size: 1.6em; color: #764ba2; margin-bottom: 4px; }
-.modal-sub    { font-size: 0.85em; color: #aaa; margin-bottom: 14px; }
+.modal-title  { font-family: 'Fredoka One', cursive; font-size: 1.6em; color: #88c8ff; margin-bottom: 4px; text-shadow: 0 0 18px rgba(100,180,255,0.45); }
+.modal-sub    { font-size: 0.85em; color: rgba(140,195,255,0.55); margin-bottom: 14px; }
 
 .modal-task-text {
     font-size: 1.18em;
     font-weight: 700;
-    color: #333;
-    background: #f3eeff;
+    color: rgba(220,238,255,0.95);
+    background: rgba(15,35,100,0.65);
     border-radius: 14px;
     padding: 16px 20px;
     margin-bottom: 20px;
     line-height: 1.45;
-    border: 2px solid #e9d8ff;
+    border: 1px solid rgba(80,160,255,0.28);
 }
 
 .modal-btn {
-    background: linear-gradient(135deg, #43e97b, #38f9d7);
-    color: #333;
+    background: linear-gradient(135deg, #00e08a, #009958);
+    color: white;
     border: none;
     padding: 12px 36px;
     border-radius: 14px;
@@ -350,24 +367,28 @@ body {
     font-weight: 800;
     cursor: pointer;
     transition: all 0.18s;
-    box-shadow: 0 4px 12px rgba(67,233,123,0.4);
+    box-shadow: 0 4px 16px rgba(0,200,100,0.5);
     display: inline-block;
 }
 
-.modal-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(67,233,123,0.5); }
+.modal-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 22px rgba(0,200,100,0.7); }
 
 .modal-btn-warn {
-    background: linear-gradient(135deg, #f093fb, #f5576c);
-    color: white;
-    box-shadow: 0 4px 12px rgba(245,87,108,0.4);
+    background: linear-gradient(135deg, #c040ff, #7000cc);
+    box-shadow: 0 4px 16px rgba(180,74,255,0.5);
 }
-.modal-btn-warn:hover { box-shadow: 0 6px 18px rgba(245,87,108,0.5); }
+.modal-btn-warn:hover { box-shadow: 0 6px 22px rgba(180,74,255,0.7); }
 
 /* Win modal */
 .win-modal-box {
-    background: linear-gradient(135deg, #f7971e, #ffd200);
+    background: linear-gradient(135deg, rgba(60,30,0,0.97), rgba(80,45,0,0.97));
+    border-color: rgba(255,210,0,0.35);
+    box-shadow:
+        0 0 0 1px rgba(255,210,0,0.28),
+        0 0 55px rgba(255,160,0,0.35),
+        0 20px 60px rgba(0,0,0,0.75);
 }
-.win-modal-box .modal-title { color: #7a4f00; }
+.win-modal-box .modal-title { color: #ffd700; text-shadow: 0 0 22px rgba(255,210,0,0.65); }
 
 /* ─── Confetti ───────────────────────────────────────── */
 .confetti-piece {
@@ -388,9 +409,9 @@ body {
     position: fixed;
     top: 10px;
     right: 10px;
-    background: rgba(255,255,255,0.2);
-    border: 2px solid rgba(255,255,255,0.5);
-    color: white;
+    background: rgba(15,30,90,0.7);
+    border: 1px solid rgba(100,180,255,0.35);
+    color: rgba(160,210,255,0.9);
     padding: 5px 10px;
     border-radius: 8px;
     cursor: pointer;
@@ -398,16 +419,5 @@ body {
     z-index: 100;
     transition: background 0.2s;
 }
-#fullscreen-btn:hover { background: rgba(255,255,255,0.35); }
 
-/* ─── Responsive ─────────────────────────────────────── */
-@media (max-width: 660px) {
-    body { align-items: flex-start; padding: 8px; }
-    .game-wrapper { flex-direction: column; align-items: stretch; }
-    .controls-panel { width: 100%; min-width: unset; flex-direction: row; flex-wrap: wrap; }
-    .controls-title { width: 100%; }
-    .dice-area { flex: 1; min-width: 140px; }
-    .current-player-card { flex: 1; min-width: 120px; }
-    .players-list { flex: 1; min-width: 200px; }
-    #game-message { width: 100%; }
-}
+#fullscreen-btn:hover { background: rgba(30,60,160,0.75); }

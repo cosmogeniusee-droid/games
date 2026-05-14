@@ -42,61 +42,135 @@ function parseParams() {
 // ─── Board building ───────────────────────────────────────────────────────────
 
 function buildBoard() {
-    const total    = cfg.cells;
-    const cols     = CELL_COLS;
-    const totalRows = Math.ceil(total / cols);
+    const total = cfg.cells;
     state.boardCells = [];
 
     for (let idx = 0; idx < total; idx++) {
-        const rowNum   = Math.floor(idx / cols);          // 0 = bottom row
-        const colInRow = idx % cols;
-        const gridRow  = totalRows - rowNum;              // CSS grid row (1 = top)
-        const gridCol  = (rowNum % 2 === 0)
-            ? colInRow + 1
-            : cols - colInRow;                            // snake reversal
-
         let type, icon, content = '';
 
         if (idx === 0) {
-            type = 'start';  icon = '🏠'; content = 'Старт';
+            type = 'start';  icon = '🚀'; content = 'Старт';
         } else if (idx === total - 1) {
-            type = 'finish'; icon = '🏆'; content = 'Финиш';
+            type = 'finish'; icon = '🌟'; content = 'Финиш';
         } else {
             const raw = (cfg.tasks[idx - 1] || '').trim();
             if (!raw) {
-                type = 'empty'; icon = '⭕'; content = '';
+                type = 'empty'; icon = '⭐'; content = '';
             } else if (/^!вперед:(\d+)$/i.test(raw)) {
                 const n = parseInt(raw.split(':')[1]);
-                type = 'forward'; icon = '⚡'; content = `Вперёд +${n}`;
+                type = 'forward'; icon = '☄️'; content = `Вперёд +${n}`;
             } else if (/^!назад:(\d+)$/i.test(raw)) {
                 const n = parseInt(raw.split(':')[1]);
                 type = 'back'; icon = '🌀'; content = `Назад −${n}`;
             } else if (/^!пропуск$/i.test(raw)) {
-                type = 'skip'; icon = '💤'; content = 'Пропуск хода';
+                type = 'skip'; icon = '💫'; content = 'Пропуск хода';
             } else {
-                type = 'task'; icon = '📋'; content = raw;
+                type = 'task'; icon = '🛸'; content = raw;
             }
         }
 
-        state.boardCells.push({ idx, number: idx + 1, type, icon, content, gridRow, gridCol });
+        state.boardCells.push({ idx, number: idx + 1, type, icon, content });
     }
 }
 
 // ─── Board rendering ──────────────────────────────────────────────────────────
 
-function renderBoard() {
-    const board     = document.getElementById('game-board');
-    const totalRows = Math.ceil(cfg.cells / CELL_COLS);
-    board.style.gridTemplateColumns = `repeat(${CELL_COLS}, 1fr)`;
-    board.style.gridTemplateRows    = `repeat(${totalRows}, 1fr)`;
-    board.innerHTML = '';
+// SVG path that defines the winding space track
+const TRACK_PATH = [
+    'M 55,430',
+    'C 230,418 410,442 575,430',
+    'C 610,430 610,360 575,360',
+    'C 410,372 230,348 55,360',
+    'C 20,360 20,290 55,290',
+    'C 230,278 410,302 575,290',
+    'C 610,290 610,220 575,220',
+    'C 410,232 230,208 55,220',
+    'C 20,220 20,150 55,150',
+    'C 180,138 270,158 320,130'
+].join(' ');
 
-    state.boardCells.forEach(cell => {
+function renderBoard() {
+    const board = document.getElementById('game-board');
+    board.innerHTML = '';
+    board.style.cssText = 'width:640px; height:470px;';
+
+    const W = 640, H = 470;
+    const ns = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(ns, 'svg');
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    svg.setAttribute('width', W);
+    svg.setAttribute('height', H);
+    svg.setAttribute('overflow', 'visible');
+    svg.style.cssText = 'position:absolute;top:0;left:0;pointer-events:none;overflow:visible;';
+
+    // Stars
+    for (let i = 0; i < 110; i++) {
+        const c = document.createElementNS(ns, 'circle');
+        c.setAttribute('cx', (Math.random() * W).toFixed(1));
+        c.setAttribute('cy', (Math.random() * H).toFixed(1));
+        c.setAttribute('r',  (0.4 + Math.random() * 2).toFixed(1));
+        c.setAttribute('fill', 'white');
+        c.setAttribute('opacity', (0.12 + Math.random() * 0.88).toFixed(2));
+        if (Math.random() > 0.6) {
+            c.style.animation = `twinkle ${(1.5 + Math.random() * 3.5).toFixed(1)}s infinite alternate ${(Math.random() * 3).toFixed(1)}s`;
+        }
+        svg.appendChild(c);
+    }
+
+    // Nebula blobs
+    [
+        { cx: 130, cy: 390, rx: 95, ry: 60, fill: 'rgba(80,0,160,0.07)' },
+        { cx: 530, cy: 245, rx: 105, ry: 70, fill: 'rgba(0,80,200,0.07)' },
+        { cx: 270, cy: 155, rx: 85, ry: 55, fill: 'rgba(170,20,80,0.05)' },
+    ].forEach(nb => {
+        const el = document.createElementNS(ns, 'ellipse');
+        el.setAttribute('cx', nb.cx); el.setAttribute('cy', nb.cy);
+        el.setAttribute('rx', nb.rx); el.setAttribute('ry', nb.ry);
+        el.setAttribute('fill', nb.fill);
+        svg.appendChild(el);
+    });
+
+    // Track layers
+    const mkPath = (sw, stroke, dash) => {
+        const p = document.createElementNS(ns, 'path');
+        p.setAttribute('d', TRACK_PATH);
+        p.setAttribute('fill', 'none');
+        p.setAttribute('stroke', stroke);
+        p.setAttribute('stroke-width', sw);
+        p.setAttribute('stroke-linecap', 'round');
+        p.setAttribute('stroke-linejoin', 'round');
+        if (dash) p.setAttribute('stroke-dasharray', dash);
+        return p;
+    };
+    svg.appendChild(mkPath(65, 'rgba(60,120,255,0.09)'));
+    svg.appendChild(mkPath(48, 'rgba(60,140,255,0.17)'));
+    svg.appendChild(mkPath(30, 'rgba(8,22,75,0.96)'));
+    svg.appendChild(mkPath(26, 'rgba(18,45,120,0.88)'));
+    svg.appendChild(mkPath(2,  'rgba(140,200,255,0.22)', '13 10'));
+
+    // Invisible measurement path
+    const mPath = mkPath(0, 'none');
+    svg.appendChild(mPath);
+    board.appendChild(svg);
+
+    const totalLen = mPath.getTotalLength();
+    const n = state.boardCells.length;
+    const CELL_SIZE = Math.max(34, Math.min(52, Math.floor((totalLen / n) * 0.62)));
+
+    state.boardCells.forEach((cell, i) => {
+        const t  = i / Math.max(n - 1, 1);
+        const pt = mPath.getPointAtLength(t * totalLen);
+
         const div = document.createElement('div');
         div.id        = `cell-${cell.idx}`;
         div.className = `cell cell-${cell.type}`;
-        div.style.gridRow    = cell.gridRow;
-        div.style.gridColumn = cell.gridCol;
+        div.style.cssText = [
+            `width:${CELL_SIZE}px`,
+            `height:${CELL_SIZE}px`,
+            `left:${(pt.x - CELL_SIZE / 2).toFixed(1)}px`,
+            `top:${(pt.y - CELL_SIZE / 2).toFixed(1)}px`,
+            `font-size:${CELL_SIZE}px`
+        ].join(';');
         if (cell.type === 'task') div.title = cell.content;
 
         div.innerHTML = `
@@ -116,7 +190,7 @@ function renderToken() {
     if (!container) return;
     const tok = document.createElement('div');
     tok.className = 'player-token';
-    tok.style.background = '#e74c3c';
+    tok.style.background = 'rgba(210,40,40,0.92)';
     tok.textContent = '★';
     container.appendChild(tok);
 }
@@ -124,7 +198,7 @@ function renderToken() {
 function renderStatus() {
     const p = state.player;
     document.getElementById('player-pos').textContent = p.position + 1;
-    document.getElementById('player-skip').textContent = p.skipsLeft > 0 ? ' 💤' : '';
+    document.getElementById('player-skip').textContent = p.skipsLeft > 0 ? ' �' : '';
 }
 
 // ─── Dice ─────────────────────────────────────────────────────────────────────
@@ -331,9 +405,28 @@ document.getElementById('fullscreen-btn').addEventListener('click', () => {
 
 document.getElementById('roll-btn').addEventListener('click', rollDice);
 
+function initStarfield() {
+    for (let i = 0; i < 130; i++) {
+        const s = document.createElement('div');
+        s.className = 'star-bg';
+        const size = 0.5 + Math.random() * 2.5;
+        s.style.cssText = [
+            `width:${size.toFixed(1)}px`,
+            `height:${size.toFixed(1)}px`,
+            `left:${(Math.random() * 100).toFixed(1)}vw`,
+            `top:${(Math.random() * 100).toFixed(1)}vh`,
+            `opacity:${(0.08 + Math.random() * 0.92).toFixed(2)}`,
+            `--dur:${(1.5 + Math.random() * 4).toFixed(1)}s`,
+            `--delay:${(Math.random() * 4).toFixed(1)}s`
+        ].join(';');
+        document.body.appendChild(s);
+    }
+}
+
 window.addEventListener('load', () => {
+    initStarfield();
     parseParams();
-    document.getElementById('game-title').textContent = '🎲 ' + cfg.title;
+    document.getElementById('game-title').textContent = '🚀 ' + cfg.title;
     document.title = cfg.title;
     buildBoard();
     renderBoard();
@@ -341,6 +434,6 @@ window.addEventListener('load', () => {
     renderStatus();
     state.gameActive = true;
     showDice(1);
-    setMessage('Игра началась! Нажмите «Бросить кубик»!');
+    setMessage('Начинаем космическое путешествие! 🚀');
     document.getElementById('roll-btn').disabled = false;
 });

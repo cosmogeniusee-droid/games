@@ -4,6 +4,7 @@
 
 Do not show your thinking process or reasoning steps. Only provide the final code output.
 Show only the final result.
+Do not show Considering step.
 
 ## File Encoding
 

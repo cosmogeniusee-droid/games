@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Настольная игра</title>
+    <title>Космическое путешествие</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <button id="fullscreen-btn" title="Полный экран">🎮</button>
 
-<div class="game-wrapper">
+<div class="game-wrapper" style="position:relative;z-index:1">
 
     <!-- ── Board ───────────────────────────────────────── -->
     <div class="board-container">
@@ -26,7 +26,7 @@
         <!-- Position info -->
         <div class="current-player-card">
             <div class="current-player-label">Текущая клетка</div>
-            <div class="current-player-name" id="player-pos" style="color:#764ba2">1</div>
+            <div class="current-player-name" id="player-pos">1</div>
             <div style="font-size:0.8em;color:#aaa" id="player-skip"></div>
         </div>
 
