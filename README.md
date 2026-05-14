@@ -1,5 +1,5 @@
 * [Квадрат Шульте](/SchulteTable/config.html)
-* [Ползунок(Создание ссылки)](/Slider/config.html)
+* [Ползунок](/Slider/config.html)
 * [Вращающийся текст](/TextRotator/config.html)
 * [Поиск буквы](/FindChar/config.html)
 * [Поиск фигуры](/FindFigure/config.html)
