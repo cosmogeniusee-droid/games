@@ -18,8 +18,22 @@
                         <h5 class="card-title">Настройки</h5>
                         
                         <div class="mb-3">
-                            <label for="customTargetsInput" class="form-label">Буквы для поиска (через запятую, например: А,Б,В):</label>
-                            <input type="text" id="customTargetsInput" class="form-control" placeholder="Если пусто, буквы выберутся случайно">
+                            <label class="form-label">Что искать:</label>
+                            <div class="btn-group w-100" role="group" aria-label="Набор символов">
+                                <input type="radio" class="btn-check" name="charSet" id="charSetLetters" value="letters" checked>
+                                <label class="btn btn-outline-primary" for="charSetLetters">Только буквы</label>
+
+                                <input type="radio" class="btn-check" name="charSet" id="charSetNumbers" value="numbers">
+                                <label class="btn btn-outline-primary" for="charSetNumbers">Только цифры</label>
+
+                                <input type="radio" class="btn-check" name="charSet" id="charSetBoth" value="both">
+                                <label class="btn btn-outline-primary" for="charSetBoth">Буквы и цифры</label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="customTargetsInput" class="form-label">Символы для поиска (через запятую, например: А,Б,5):</label>
+                            <input type="text" id="customTargetsInput" class="form-control" placeholder="Если пусто, символы выберутся случайно">
                         </div>
 
                         <div class="mb-3">
@@ -85,6 +99,13 @@
             fontSize: document.getElementById('fontSize'),
         };
 
+        const charSetRadios = document.querySelectorAll('input[name="charSet"]');
+
+        function getCharSet() {
+            const checked = document.querySelector('input[name="charSet"]:checked');
+            return checked ? checked.value : 'letters';
+        }
+
         const valueDisplays = {
             gridSize: document.getElementById('gridSizeValue'),
             gridSize2: document.getElementById('gridSizeValue2'),
@@ -117,7 +138,20 @@
         function updateLink() {
             const baseUrl = 'index.html';
             const params = new URLSearchParams();
-            const customTargetsValue = inputs.customTargets.value.trim().toUpperCase().replace(/[^А-ЯЁ,]/g, '');
+            const charSet = getCharSet();
+
+            // Разрешённые символы зависят от выбранного набора
+            let allowedPattern;
+            if (charSet === 'numbers') {
+                allowedPattern = /[^0-9,]/g;
+            } else if (charSet === 'both') {
+                allowedPattern = /[^А-ЯЁ0-9,]/g;
+            } else {
+                allowedPattern = /[^А-ЯЁ,]/g;
+            }
+            const customTargetsValue = inputs.customTargets.value.trim().toUpperCase().replace(allowedPattern, '');
+
+            if (charSet !== 'letters') params.set('charSet', charSet);
 
             if (customTargetsValue) {
                 params.set('customTargets', customTargetsValue);
@@ -155,6 +189,18 @@
 
         inputs.customTargets.addEventListener('input', () => {
             targetsGroup.style.display = inputs.customTargets.value.trim() ? 'none' : 'block';
+        });
+
+        charSetRadios.forEach(radio => {
+            radio.addEventListener('change', () => {
+                const charSet = getCharSet();
+                inputs.customTargets.placeholder = charSet === 'numbers'
+                    ? 'Если пусто, цифры выберутся случайно'
+                    : charSet === 'both'
+                        ? 'Если пусто, символы выберутся случайно'
+                        : 'Если пусто, буквы выберутся случайно';
+                updateLink();
+            });
         });
 
         copyBtn.addEventListener("click", () => copyTextToClipboard(urlDisplay.value));

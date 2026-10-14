@@ -1,6 +1,7 @@
 // Русские буквы для игры
 const RUSSIAN_ALPHABET = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"; 
 const FREQUENT_LETTERS = "АЕИОУРСТНЛКВДМПБГЖЗК"; // Более частые для отвлекающего фона
+const DIGITS = "0123456789"; // Цифры для игры
 
 // --- Получение параметров из URL ---
 const urlParams = new URLSearchParams(window.location.search);
@@ -10,6 +11,24 @@ const urlMin = urlParams.get('min');
 const urlMax = urlParams.get('max');
 const urlCustomTargets = urlParams.get('customTargets');
 const urlFontSize = urlParams.get('fontSize');
+const urlCharSet = urlParams.get('charSet'); // 'letters' | 'numbers' | 'both'
+
+// Набор символов: 'letters' (только буквы), 'numbers' (только цифры), 'both' (и то, и другое)
+const CHAR_SET = (urlCharSet === 'numbers' || urlCharSet === 'both') ? urlCharSet : 'letters';
+
+// Полный пул символов, из которого выбираются цели
+const TARGET_POOL = CHAR_SET === 'numbers'
+    ? DIGITS
+    : CHAR_SET === 'both'
+        ? RUSSIAN_ALPHABET + DIGITS
+        : RUSSIAN_ALPHABET;
+
+// Пул отвлекающих символов для заполнения фона
+const DISTRACTER_POOL = CHAR_SET === 'numbers'
+    ? DIGITS
+    : CHAR_SET === 'both'
+        ? FREQUENT_LETTERS + DIGITS
+        : FREQUENT_LETTERS;
 
 // Настройки игры
 const GRID_SIZE = urlGridSize ? parseInt(urlGridSize, 10) : 15; // Размер сетки
@@ -99,7 +118,7 @@ function stopTimer() {
  * @returns {string[]} Массив выбранных букв.
  */
 function chooseTargetLetters(count) {
-    const letters = RUSSIAN_ALPHABET.split('');
+    const letters = TARGET_POOL.split('');
     const chosen = [];
     while (chosen.length < count) {
         const randomIndex = Math.floor(Math.random() * letters.length);
@@ -132,8 +151,8 @@ function generateLetterArray(targets) {
 
     remainingCount = totalTargets;
     
-    // 2. Добавляем отвлекающие буквы до заполнения поля
-    const frequentLettersArr = FREQUENT_LETTERS.split('');
+    // 2. Добавляем отвлекающие символы до заполнения поля
+    const frequentLettersArr = DISTRACTER_POOL.split('');
     while (letters.length < TOTAL_CELLS) {
         const randomIndex = Math.floor(Math.random() * frequentLettersArr.length);
         const distracter = frequentLettersArr[randomIndex];
