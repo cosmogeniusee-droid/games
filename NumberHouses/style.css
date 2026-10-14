@@ -1,0 +1,338 @@
+/* Базовые стили для детской стилистики */
+body {
+    background-color: #cdeffd; /* Небесно-голубой фон */
+    color: #333;
+    font-family: 'Comic Sans MS', 'Segoe UI', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+}
+
+.game-container {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 25px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    max-width: 95vw;
+    width: 1100px;
+}
+
+h1 {
+    color: #ff6347;
+    margin-bottom: 10px;
+    font-size: 2em;
+    text-shadow: 2px 2px #feca57;
+}
+
+/* Элементы управления и информация */
+.controls {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 15px;
+    margin-bottom: 20px;
+    background-color: #a4f5aa;
+    border-radius: 15px;
+    border: 3px dashed #3cb371;
+}
+
+.target-info {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #007bff;
+    margin: 0;
+    flex: 1 1 220px;
+    text-align: left;
+}
+
+.info-group {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.score-info { font-size: 1.1em; color: #4682b4; margin: 0; }
+.error-info { font-size: 1.1em; font-weight: bold; color: #d9534f; margin: 0; }
+.timer-info { font-size: 1.3em; font-weight: bold; color: #008080; margin: 0; }
+#timer { color: #ff6347; font-size: 1.1em; }
+
+.buttons-container {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 0;
+    flex-wrap: wrap;
+}
+
+#start-button,
+#fullscreen-button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    font-size: 1.2em;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 5px #388e3c;
+    transition: background-color 0.1s;
+}
+
+#start-button:hover,
+#fullscreen-button:hover { background-color: #45a049; }
+
+#start-button:active,
+#fullscreen-button:active {
+    box-shadow: 0 2px #388e3c;
+    transform: translateY(3px);
+}
+
+/* Поле с домиками */
+.houses-board {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 30px;
+    padding: 10px;
+    min-height: 300px;
+}
+
+/* Отдельный домик */
+.house {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    --cell: var(--house-cell, 70px);
+}
+
+/* Крыша с числом. Растягивается на ширину корпуса (в т.ч. многоколоночного). */
+.house-roof {
+    position: relative;
+    align-self: stretch;
+    min-width: calc((var(--cell) + 12px) * 2);
+    height: calc(var(--cell) * 0.95);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Сам треугольник крыши — отдельный слой, не мешает тексту */
+.house-roof::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: #ff8c69;
+    clip-path: polygon(50% 0, 100% 100%, 0 100%);
+    z-index: 0;
+}
+
+.house-roof .roof-number {
+    position: relative;
+    z-index: 1;
+    /* Опускаем число ниже острой вершины, где треугольник шире */
+    margin-top: calc(var(--cell) * 0.3);
+    font-size: calc(var(--cell) * 0.5);
+    line-height: 1;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.45);
+}
+
+/* Корпус домика */
+.house-body {
+    background-color: #fff6e5;
+    border: 4px solid #ff8c69;
+    border-top: none;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+/* Этаж: два окошка рядом */
+.floor {
+    display: flex;
+    gap: 6px;
+}
+
+/* Многоколоночный корпус: этажи заполняют колонку сверху вниз,
+   затем переносятся в следующую колонку (домик растёт в ширину). */
+.house-body.multi-column {
+    flex-direction: column;
+    flex-wrap: wrap;
+    /* Высота = (высота этажа + вертикальный зазор) * число строк в колонке.
+       Высота этажа = высота ячейки = cell * 0.8, зазор между этажами = 8px. */
+    max-height: calc((var(--cell) * 0.8 + 8px) * var(--rows-per-column, 7));
+    column-gap: 110px;
+    align-content: flex-start;
+}
+
+.cell {
+    width: var(--cell);
+    height: calc(var(--cell) * 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: calc(var(--cell) * 0.5);
+    font-weight: bold;
+    border: 3px solid #c7a06a;
+    border-radius: 8px;
+    background-color: #fffdf7;
+    box-sizing: border-box;
+}
+
+/* Заданное (несменяемое) окошко */
+.cell.given {
+    background-color: #ffe8c2;
+    color: #5a3d1e;
+}
+
+/* Пустое окошко — цель для перетаскивания или клика */
+.cell.input {
+    border-style: dashed;
+    border-color: #007bff;
+    color: #007bff;
+}
+
+/* Показываем, что по пустому окошку можно кликнуть */
+.cell.drop-target {
+    cursor: pointer;
+}
+
+.cell.drop-target:hover {
+    background-color: #eaf4ff;
+    border-color: #0056b3;
+}
+
+/* Когда число выбрано — пустые окошки мягко пульсируют, приглашая кликнуть */
+.armed .cell.drop-target {
+    animation: pulse-target 1s ease-in-out infinite;
+}
+
+@keyframes pulse-target {
+    0%, 100% { background-color: #fffdf7; }
+    50% { background-color: #d6ebff; border-color: #0056b3; }
+}
+
+/* Подсветка окошка, когда над ним держат число */
+.cell.drop-target.hover {
+    background-color: #d6ebff;
+    border-color: #0056b3;
+    transform: scale(1.08);
+    transition: transform 0.08s;
+}
+
+.cell.input.correct {
+    background-color: #a4f5aa;
+    border-color: #3cb371;
+    border-style: solid;
+    color: #1b6b35;
+}
+
+.cell.input.wrong {
+    background-color: #ffc0cb;
+    border-color: #ff4500;
+    animation: shake 0.4s;
+}
+
+/* --- Палитра перетаскиваемых чисел --- */
+.palette-hint {
+    margin: 18px 0 8px;
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #007bff;
+}
+
+.number-palette {
+    --cell: var(--house-cell, 70px);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    padding: 12px;
+    background-color: #eef7ff;
+    border: 3px dashed #7ab8ff;
+    border-radius: 15px;
+}
+
+.number-tile {
+    width: var(--cell);
+    height: calc(var(--cell) * 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: calc(var(--cell) * 0.5);
+    font-weight: bold;
+    color: #0056b3;
+    background-color: #fff;
+    border: 3px solid #4a90e2;
+    border-radius: 10px;
+    box-shadow: 0 4px #a9c9ef;
+    cursor: grab;
+    user-select: none;
+    touch-action: none; /* чтобы перетаскивание не прокручивало страницу на тач-экранах */
+    transition: transform 0.08s;
+}
+
+.number-tile:hover { transform: translateY(-2px); }
+.number-tile:active { cursor: grabbing; }
+.number-tile.dragging { opacity: 0.4; }
+
+/* Выбранная кликом плитка */
+.number-tile.selected {
+    background-color: #ffe066;
+    border-color: #f0ad00;
+    box-shadow: 0 0 0 4px #ffd43b, 0 4px #c99a00;
+    transform: translateY(-3px) scale(1.05);
+}
+
+/* Плавающая копия плитки, следующая за указателем */
+.drag-ghost {
+    --cell: var(--house-cell, 70px);
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 1000;
+    margin: 0;
+    /* Явно задаём размеры, иначе оторванная от flex-контейнера плитка схлопывается */
+    width: var(--cell);
+    height: calc(var(--cell) * 0.8);
+    font-size: calc(var(--cell) * 0.5);
+    pointer-events: none;
+    transform: translate(-50%, -50%) scale(1.1);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+    opacity: 0.95;
+}
+
+/* Когда игра не активна, палитра приглушена */
+.disabled .number-tile { cursor: default; }
+
+/* Сообщение о победе */
+.message-area {
+    margin-top: 20px;
+    padding: 20px;
+    background-color: #ffe066;
+    border: 4px solid #feca57;
+    border-radius: 15px;
+    font-size: 1.8em;
+    font-weight: bold;
+    color: #e91e63;
+}
+
+.hidden { display: none; }
+
+.disabled { pointer-events: none; opacity: 0.7; }
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-5px); }
+    40%, 80% { transform: translateX(5px); }
+}

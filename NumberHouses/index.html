@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Состав числа — Домики 🏠</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <h1>🏠 Состав числа — Домики 🏠</h1>
+
+        <div class="controls">
+            <p class="target-info">
+                Засели домики! Числа в этажах должны вместе давать число на крыше.
+            </p>
+            <div class="info-group">
+                <p class="timer-info">Время: <span id="timer">00:00</span></p>
+                <p class="score-info">Осталось окошек: <span id="remaining-count">0</span></p>
+                <p class="error-info">Ошибки: <span id="error-count">0</span></p>
+            </div>
+            <div class="buttons-container">
+                <button id="start-button">Начать игру! 🚀</button>
+                <button id="fullscreen-button">На весь экран ↔️</button>
+            </div>
+        </div>
+
+        <div id="game-board" class="houses-board"></div>
+
+        <p class="palette-hint">Перетащи число в окошко 👇 или нажми на число, а затем на окошко</p>
+        <div id="number-palette" class="number-palette"></div>
+
+        <div id="message-area" class="message-area hidden"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
