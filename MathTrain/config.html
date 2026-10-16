@@ -14,6 +14,17 @@
     <div class="row g-4">
         <!-- Left: settings -->
         <div class="col-lg-5">
+            <div class="card mb-3 border-primary">
+                <div class="card-body">
+                    <h5 class="card-title">Свои примеры (необязательно)</h5>
+                    <p class="text-muted small mb-2">Задайте примеры вручную — они будут показаны именно в этом порядке. Если поле пустое, примеры генерируются случайно по настройкам ниже.</p>
+                    <textarea id="problemsInput" class="form-control" rows="5" placeholder="Каждый пример с новой строки:&#10;4+7&#10;9-3&#10;3*4&#10;10-5"></textarea>
+                    <div class="form-text">Каждый пример — на отдельной строке. Знаки: <code>+</code> <code>-</code> <code>*</code> (или <code>×</code>).</div>
+                    <div id="problems-warning" class="text-danger small mt-1 d-none"></div>
+                </div>
+            </div>
+
+            <div id="random-settings">
             <div class="card mb-3">
                 <div class="card-body">
                     <h5 class="card-title">Действия</h5>
@@ -52,6 +63,13 @@
                         <label for="count" class="form-label">Сколько примеров: <span id="countValue" class="fw-bold text-primary">10</span></label>
                         <input type="range" id="count" class="form-range" value="10" min="3" max="30">
                     </div>
+                </div>
+            </div>
+            </div><!-- /#random-settings -->
+
+            <!-- Вариантов ответа и оформление применяются в обоих режимах -->
+            <div class="card mb-3">
+                <div class="card-body">
                     <div class="mb-0">
                         <label for="choices" class="form-label">Вариантов ответа: <span id="choicesValue" class="fw-bold text-primary">4</span></label>
                         <input type="range" id="choices" class="form-range" value="4" min="2" max="8">
@@ -105,6 +123,9 @@
     const gameLink   = document.getElementById('gameLink');
     const copyLink   = document.getElementById('copyLink');
     const previewFrame = document.getElementById('previewFrame');
+    const problemsInput   = document.getElementById('problemsInput');
+    const problemsWarning = document.getElementById('problems-warning');
+    const randomSettings  = document.getElementById('random-settings');
 
     const ranges = {
         maxNum:  document.getElementById('maxNum'),
@@ -123,6 +144,24 @@
         return opChecks.filter(c => c.checked).map(c => c.value);
     }
 
+    // Разбирает поле «Свои примеры» (каждый пример — на новой строке).
+    // Возвращает { items:[...], bad:[...] }.
+    function parseProblems(raw) {
+        const items = [];
+        const bad = [];
+        raw.split(/\r?\n/).forEach(part => {
+            const token = part.trim();
+            if (token === '') return;
+            const m = token.replace(/×/g, '*').match(/^(\d+)\s*([+\-*])\s*(\d+)$/);
+            if (!m) { bad.push(token); return; }
+            const a = parseInt(m[1], 10), op = m[2], b = parseInt(m[3], 10);
+            if (op === '-' && b > a) { bad.push(token + ' (ответ < 0)'); return; }
+            // нормализуем к виду a+b (× сохраняем как *)
+            items.push(`${a}${op}${b}`);
+        });
+        return { items, bad };
+    }
+
     function updateValues() {
         // Сумма не может быть меньше наибольшего числа
         if (parseInt(ranges.maxSum.value) < parseInt(ranges.maxNum.value)) {
@@ -135,19 +174,40 @@
     }
 
     function updateLink() {
-        const ops = getSelectedOps();
-        opsWarning.classList.toggle('d-none', ops.length > 0);
-
         const baseUrl = 'index.html';
         const p = new URLSearchParams();
 
-        // ops: по умолчанию только "+", иначе записываем выбранное
-        const opsValue = ops.length ? ops.join(',') : '+';
-        if (opsValue !== '+') p.set('ops', opsValue);
+        const rawProblems = problemsInput.value.trim();
+        const parsed = parseProblems(rawProblems);
+        const usingCustom = parsed.items.length > 0;
 
-        if (ranges.maxNum.value !== '10') p.set('maxNum', ranges.maxNum.value);
-        if (ranges.maxSum.value !== '10') p.set('maxSum', ranges.maxSum.value);
-        if (ranges.count.value !== '10')  p.set('count', ranges.count.value);
+        // Показ/скрытие блока случайных настроек в зависимости от режима
+        randomSettings.style.display = usingCustom ? 'none' : 'block';
+
+        // Предупреждение о некорректных примерах
+        if (rawProblems !== '' && parsed.bad.length > 0) {
+            problemsWarning.textContent = 'Пропущены неверные примеры: ' + parsed.bad.join(', ');
+            problemsWarning.classList.remove('d-none');
+        } else {
+            problemsWarning.classList.add('d-none');
+        }
+
+        if (usingCustom) {
+            // Режим своих примеров: действия/числа/количество не нужны
+            p.set('problems', parsed.items.join(','));
+        } else {
+            const ops = getSelectedOps();
+            opsWarning.classList.toggle('d-none', ops.length > 0);
+
+            // ops: по умолчанию только "+", иначе записываем выбранное
+            const opsValue = ops.length ? ops.join(',') : '+';
+            if (opsValue !== '+') p.set('ops', opsValue);
+
+            if (ranges.maxNum.value !== '10') p.set('maxNum', ranges.maxNum.value);
+            if (ranges.maxSum.value !== '10') p.set('maxSum', ranges.maxSum.value);
+            if (ranges.count.value !== '10')  p.set('count', ranges.count.value);
+        }
+
         if (ranges.choices.value !== '4') p.set('choices', ranges.choices.value);
         if (bgColorInput.value !== '#e3f2fd') p.set('bgcolor', bgColorInput.value.substring(1));
 
@@ -163,6 +223,7 @@
     opChecks.forEach(c => c.addEventListener('change', updateLink));
     Object.values(ranges).forEach(r => r.addEventListener('input', () => { updateValues(); updateLink(); }));
     bgColorInput.addEventListener('input', updateLink);
+    problemsInput.addEventListener('input', updateLink);
 
     copyLink.addEventListener('click', () => {
         navigator.clipboard.writeText(urlDisplay.value).then(() => {
