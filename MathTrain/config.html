@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Конфигуратор игры "Математический поезд"</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+</head>
+<body class="bg-light">
+<div class="container mt-4">
+    <h1 class="mb-2">🚂 Конфигуратор игры "Математический поезд" 🧮</h1>
+    <p class="text-muted mb-4">Настройте примеры: действия, диапазон чисел и количество. Ребёнок выбирает правильный ответ из вариантов.</p>
+
+    <div class="row g-4">
+        <!-- Left: settings -->
+        <div class="col-lg-5">
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Действия</h5>
+                    <p class="text-muted small mb-2">Какие действия встречаются в примерах.</p>
+                    <div class="form-check">
+                        <input class="form-check-input op-check" type="checkbox" id="opPlus" value="+" checked>
+                        <label class="form-check-label fs-5" for="opPlus">➕ Сложение (4 + 7)</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input op-check" type="checkbox" id="opMinus" value="-">
+                        <label class="form-check-label fs-5" for="opMinus">➖ Вычитание (9 − 3)</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input op-check" type="checkbox" id="opMul" value="*">
+                        <label class="form-check-label fs-5" for="opMul">✖️ Умножение (3 × 4)</label>
+                    </div>
+                    <div id="ops-warning" class="text-danger small mt-1 d-none">Выберите хотя бы одно действие.</div>
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Числа и количество</h5>
+
+                    <div class="mb-3">
+                        <label for="maxNum" class="form-label">Наибольшее число в примере: <span id="maxNumValue" class="fw-bold text-primary">10</span></label>
+                        <input type="range" id="maxNum" class="form-range" value="10" min="2" max="20">
+                        <div class="form-text">Слагаемые/множители — от 0 до этого значения.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="maxSum" class="form-label">Наибольший ответ (сумма): <span id="maxSumValue" class="fw-bold text-primary">10</span></label>
+                        <input type="range" id="maxSum" class="form-range" value="10" min="2" max="100">
+                        <div class="form-text">Примеры с ответом больше этого значения не появятся.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="count" class="form-label">Сколько примеров: <span id="countValue" class="fw-bold text-primary">10</span></label>
+                        <input type="range" id="count" class="form-range" value="10" min="3" max="30">
+                    </div>
+                    <div class="mb-0">
+                        <label for="choices" class="form-label">Вариантов ответа: <span id="choicesValue" class="fw-bold text-primary">4</span></label>
+                        <input type="range" id="choices" class="form-range" value="4" min="2" max="8">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Оформление</h5>
+                    <div class="mb-0">
+                        <label for="bgColorInput" class="form-label">Цвет фона:</label>
+                        <input type="color" id="bgColorInput" class="form-control form-control-color" value="#e3f2fd">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Ссылка</h5>
+                    <div class="mb-3">
+                        <div class="input-group">
+                            <input type="text" id="urlDisplay" class="form-control" readonly>
+                            <button class="btn btn-outline-secondary" type="button" id="copyLink">Копировать</button>
+                        </div>
+                    </div>
+                    <a id="gameLink" href="#" target="_blank" class="btn btn-success w-100">🚀 Открыть игру в новой вкладке</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: preview -->
+        <div class="col-lg-7">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Превью</h5>
+                    <div class="ratio ratio-1x1 border rounded">
+                        <iframe id="previewFrame" src="" title="Превью игры"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const opChecks   = [...document.querySelectorAll('.op-check')];
+    const opsWarning = document.getElementById('ops-warning');
+    const bgColorInput = document.getElementById('bgColorInput');
+    const urlDisplay = document.getElementById('urlDisplay');
+    const gameLink   = document.getElementById('gameLink');
+    const copyLink   = document.getElementById('copyLink');
+    const previewFrame = document.getElementById('previewFrame');
+
+    const ranges = {
+        maxNum:  document.getElementById('maxNum'),
+        maxSum:  document.getElementById('maxSum'),
+        count:   document.getElementById('count'),
+        choices: document.getElementById('choices'),
+    };
+    const rangeValues = {
+        maxNum:  document.getElementById('maxNumValue'),
+        maxSum:  document.getElementById('maxSumValue'),
+        count:   document.getElementById('countValue'),
+        choices: document.getElementById('choicesValue'),
+    };
+
+    function getSelectedOps() {
+        return opChecks.filter(c => c.checked).map(c => c.value);
+    }
+
+    function updateValues() {
+        // Сумма не может быть меньше наибольшего числа
+        if (parseInt(ranges.maxSum.value) < parseInt(ranges.maxNum.value)) {
+            ranges.maxSum.value = ranges.maxNum.value;
+        }
+        rangeValues.maxNum.textContent  = ranges.maxNum.value;
+        rangeValues.maxSum.textContent  = ranges.maxSum.value;
+        rangeValues.count.textContent   = ranges.count.value;
+        rangeValues.choices.textContent = ranges.choices.value;
+    }
+
+    function updateLink() {
+        const ops = getSelectedOps();
+        opsWarning.classList.toggle('d-none', ops.length > 0);
+
+        const baseUrl = 'index.html';
+        const p = new URLSearchParams();
+
+        // ops: по умолчанию только "+", иначе записываем выбранное
+        const opsValue = ops.length ? ops.join(',') : '+';
+        if (opsValue !== '+') p.set('ops', opsValue);
+
+        if (ranges.maxNum.value !== '10') p.set('maxNum', ranges.maxNum.value);
+        if (ranges.maxSum.value !== '10') p.set('maxSum', ranges.maxSum.value);
+        if (ranges.count.value !== '10')  p.set('count', ranges.count.value);
+        if (ranges.choices.value !== '4') p.set('choices', ranges.choices.value);
+        if (bgColorInput.value !== '#e3f2fd') p.set('bgcolor', bgColorInput.value.substring(1));
+
+        const qs = p.toString();
+        const previewUrl = qs ? `${baseUrl}?${qs}` : baseUrl;
+        const fullUrl = `https://cosmogeniusee-droid.github.io/games/MathTrain/${previewUrl}`;
+
+        urlDisplay.value = fullUrl;
+        gameLink.href = previewUrl;
+        previewFrame.src = previewUrl;
+    }
+
+    opChecks.forEach(c => c.addEventListener('change', updateLink));
+    Object.values(ranges).forEach(r => r.addEventListener('input', () => { updateValues(); updateLink(); }));
+    bgColorInput.addEventListener('input', updateLink);
+
+    copyLink.addEventListener('click', () => {
+        navigator.clipboard.writeText(urlDisplay.value).then(() => {
+            const orig = copyLink.textContent;
+            copyLink.textContent = 'Скопировано!';
+            setTimeout(() => { copyLink.textContent = orig; }, 2000);
+        });
+    });
+
+    updateValues();
+    updateLink();
+</script>
+</body>
+</html>

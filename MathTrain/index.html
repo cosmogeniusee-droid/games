@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Математический поезд</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #e3f2fd;
+            overflow-x: hidden;
+        }
+
+        /* ── Problem train ─────────────────────────────────────── */
+        #problem-area {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            /* Высота под самый крупный поезд (кузов + колёса + запас) */
+            min-height: calc(var(--car, 180px) * 1.5);
+            margin: 90px 0 10px;
+            overflow: hidden;
+        }
+
+        /* The whole example-train (locomotive + 3 wagons).
+           Всё масштабируется от одной переменной --car (сторона кузова вагона). */
+        #problem-train {
+            --car: 180px;
+            display: inline-flex;
+            align-items: flex-end;
+            gap: 0;
+            /* Train faces LEFT (🚂 points left), so it enters from the right. */
+            transform: translateX(0);
+        }
+
+        /* На узких экранах уменьшаем поезд, чтобы он помещался */
+        @media (max-width: 900px) {
+            #problem-train { --car: 130px; }
+        }
+        @media (max-width: 640px) {
+            #problem-train { --car: 92px; }
+        }
+
+        /* Entry animation: roll in from the right */
+        #problem-train.arriving {
+            animation: train-arrive 0.7s cubic-bezier(0.3,0,0.2,1);
+        }
+        @keyframes train-arrive {
+            0%   { transform: translateX(110vw); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Exit animation: roll out to the left (forward) */
+        #problem-train.leaving {
+            animation: train-leave 0.8s cubic-bezier(0.4,0,0.2,1) forwards;
+        }
+        @keyframes train-leave {
+            0%   { transform: translateX(0); }
+            100% { transform: translateX(-120vw); }
+        }
+
+        #loco {
+            /* Локомотив по высоте примерно равен кузову вагона */
+            font-size: calc(var(--car, 140px) * 1.15);
+            line-height: 1;
+            margin-right: calc(var(--car, 140px) * -0.04);
+            /* Поднимаем паровозик так, чтобы его низ совпал с колёсами вагонов
+               (учитываем нижний отступ вагона и свисание эмодзи внутри строки). */
+            margin-bottom: calc(var(--car, 140px) * 0.14);
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,.28));
+            user-select: none;
+            align-self: flex-end;
+        }
+
+        /* A wagon = car body (with number) + undercarriage (chassis + 2 wheels).
+           Все размеры — доли от --car, чтобы вагон, колёса и локомотив были соразмерны. */
+        .wagon {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0 calc(var(--car) * 0.1) calc(var(--car) * 0.05);
+            user-select: none;
+        }
+
+        /* The coloured car body holding the number */
+        .wagon .car-body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: var(--car);
+            height: var(--car);
+            font-size: calc(var(--car) * 0.52);
+            font-weight: 800;
+            color: #0d47a1;
+            background: linear-gradient(180deg, #ffffff 0%, #dcebff 100%);
+            border: calc(var(--car) * 0.03) solid #1976d2;
+            border-radius: calc(var(--car) * 0.12) calc(var(--car) * 0.12) calc(var(--car) * 0.045) calc(var(--car) * 0.045);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.12);
+            box-sizing: border-box;
+        }
+
+        /* Chassis + wheels sit just under the body */
+        .wagon .undercarriage {
+            position: relative;
+            width: calc(var(--car) * 0.92);
+            height: calc(var(--car) * 0.2);
+        }
+        /* chassis bar */
+        .wagon .undercarriage::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0; right: 0;
+            height: calc(var(--car) * 0.06);
+            background: #455a64;
+            border-radius: 0 0 4px 4px;
+        }
+        /* two round wheels */
+        .wagon .wheel {
+            position: absolute;
+            top: calc(var(--car) * 0.03);
+            width: calc(var(--car) * 0.17);
+            height: calc(var(--car) * 0.17);
+            background: radial-gradient(circle at 50% 50%, #90a4ae 0 22%, #263238 26% 100%);
+            border: 2px solid #1b2327;
+            border-radius: 50%;
+            box-sizing: border-box;
+        }
+        .wagon .wheel.left  { left: calc(var(--car) * 0.12); }
+        .wagon .wheel.right { right: calc(var(--car) * 0.12); }
+
+        /* Big, clear operator sign BETWEEN the number cars */
+        .op-sign {
+            align-self: center;
+            font-size: calc(var(--car) * 0.5);
+            font-weight: 900;
+            color: #e65100;
+            /* raise to sit level with the car bodies (undercarriage + wagon bottom margin) */
+            margin: 0 calc(var(--car) * 0.03) calc(var(--car) * 0.3);
+            text-shadow: 0 2px 2px rgba(0,0,0,0.12);
+            user-select: none;
+            line-height: 1;
+        }
+
+        /* The answer car (the "?") */
+        .wagon.answer-wagon .car-body {
+            border-style: dashed;
+            color: #90a4ae;
+            background: #f5fbff;
+            transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.15s;
+        }
+        .wagon.answer-wagon.correct .car-body {
+            background: linear-gradient(180deg,#e8f5e9,#c8e6c9);
+            border-color: #388e3c;
+            border-style: solid;
+            color: #1b5e20;
+            transform: scale(1.05);
+        }
+        .wagon.answer-wagon.wrong .car-body {
+            animation: shake 0.35s ease;
+            background: #ffcdd2;
+            border-color: #c62828;
+            color: #b71c1c;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%       { transform: translateX(-8px); }
+            40%       { transform: translateX(8px); }
+            60%       { transform: translateX(-6px); }
+            80%       { transform: translateX(6px); }
+        }
+
+        /* ── Answer choices (number buttons) ───────────────────── */
+        #choices {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            padding: 20px 12px 12px;
+        }
+
+        .choice-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(145deg, #42a5f5, #1e88e5);
+            color: #fff;
+            font-size: 2.2rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 14px;
+            box-shadow: 0 5px 0 #1565c0, 0 7px 10px rgba(0,0,0,.2);
+            cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.1s, opacity 0.2s;
+            user-select: none;
+        }
+
+        .choice-btn:hover:not(:disabled) {
+            background: linear-gradient(145deg, #64b5f6, #42a5f5);
+        }
+
+        .choice-btn:active:not(:disabled) {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0 #1565c0, 0 3px 5px rgba(0,0,0,.15);
+        }
+
+        .choice-btn.wrong-choice {
+            background: linear-gradient(145deg, #ef5350, #e53935);
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .choice-btn:disabled {
+            opacity: 0.4;
+            cursor: default;
+            pointer-events: none;
+        }
+
+        /* ── Progress & UI ─────────────────────────────────────── */
+        #progress-bar-wrap {
+            height: 10px;
+            background: #bbdefb;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 6px;
+        }
+        #progress-bar {
+            height: 100%;
+            background: #1e88e5;
+            border-radius: 5px;
+            transition: width 0.4s ease;
+        }
+
+        /* ── Train mascot that advances on each correct answer ──── */
+        #track-area {
+            position: relative;
+            min-height: 70px;
+            overflow: hidden;
+            margin-top: 6px;
+        }
+        #track-area::after {
+            content: '';
+            position: absolute;
+            bottom: 6px;
+            left: 0; right: 0;
+            height: 10px;
+            background: repeating-linear-gradient(
+                to right,
+                #8d6e63 0px, #8d6e63 30px,
+                transparent 30px, transparent 45px
+            );
+            border-top: 3px solid #5d4037;
+            border-bottom: 3px solid #5d4037;
+            pointer-events: none;
+        }
+        #train-mascot {
+            font-size: 3rem;
+            position: absolute;
+            bottom: 14px;
+            /* 🚂 faces left, so progress moves it from right to left. */
+            right: 0;
+            transition: right 0.6s cubic-bezier(0.4,0,0.2,1);
+            z-index: 1;
+            filter: drop-shadow(2px 2px 3px rgba(0,0,0,.25));
+        }
+    </style>
+</head>
+<body>
+
+<div class="container py-3">
+    <h1 class="text-center mb-2">🚂 Математический поезд 🧮</h1>
+
+    <div class="d-flex justify-content-between align-items-center mb-1">
+        <span id="progress-text" class="text-muted small"></span>
+        <div class="d-flex gap-2">
+            <span id="score" class="badge bg-success align-self-center fs-6">⭐ 0</span>
+            <button id="fullscreen-btn" class="btn btn-sm btn-primary">Full Screen</button>
+        </div>
+    </div>
+    <div id="progress-bar-wrap"><div id="progress-bar" style="width:0%"></div></div>
+
+    <!-- The math problem as a 3-wagon train -->
+    <div id="problem-area"></div>
+
+    <p class="text-center text-muted small mb-1">Выбери правильный ответ! 👇</p>
+
+    <!-- Answer choices -->
+    <div id="choices"></div>
+
+    <!-- Little train that moves forward with each correct answer -->
+    <div id="track-area">
+        <div id="train-mascot">🚂</div>
+    </div>
+</div>
+
+<!-- Start overlay -->
+<div id="start-overlay" style="position:fixed;inset:0;background:rgba(227,242,253,0.97);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;">
+    <div style="font-size:5rem;margin-bottom:16px;">🚂🧮</div>
+    <h2 style="margin-bottom:24px;color:#0d47a1;">Математический поезд</h2>
+    <button id="start-btn" style="font-size:1.6rem;padding:16px 48px;border:none;border-radius:16px;background:linear-gradient(145deg,#1e88e5,#42a5f5);color:#fff;box-shadow:0 6px 0 #1565c0,0 8px 16px rgba(0,0,0,.2);cursor:pointer;">▶ Начать игру</button>
+</div>
+
+<!-- Win overlay -->
+<div id="win-overlay" style="position:fixed;inset:0;background:rgba(227,242,253,0.97);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:999;">
+    <div style="font-size:5rem;margin-bottom:16px;">🎉🚂🎉</div>
+    <h2 style="margin-bottom:8px;color:#0d47a1;">Молодец!</h2>
+    <p id="win-score" style="font-size:1.4rem;color:#2e7d32;margin-bottom:24px;"></p>
+    <button id="again-btn" style="font-size:1.4rem;padding:14px 40px;border:none;border-radius:16px;background:linear-gradient(145deg,#43a047,#66bb6a);color:#fff;box-shadow:0 6px 0 #2e7d32,0 8px 16px rgba(0,0,0,.2);cursor:pointer;">↻ Ещё раз</button>
+</div>
+
+<script>
+    // ── Settings from URL ───────────────────────────────────────
+    const params = new URLSearchParams(window.location.search);
+
+    // operations: any of "+", "-", "*" joined, e.g. "+,-"
+    const OPS = (params.get('ops') || '+').split(',').map(s => s.trim()).filter(s => ['+','-','*'].includes(s));
+    const OPERATIONS = OPS.length ? OPS : ['+'];
+
+    const MAX_OPERAND = parseInt(params.get('maxNum') ?? params.get('max') ?? '10', 10); // наибольшее используемое число
+    // Наибольшая допустимая сумма/ответ (по умолчанию 10).
+    const MAX_SUM = parseInt(params.get('maxSum') ?? '10', 10);
+    const MIN_OPERAND = 0;                                             // числа начинаются с 0
+    const PROBLEM_COUNT = parseInt(params.get('count') ?? '10', 10);   // сколько примеров
+    const CHOICE_COUNT  = parseInt(params.get('choices') ?? '4', 10);  // сколько вариантов ответа
+
+    const bgColor = params.get('bgcolor') ? `#${params.get('bgcolor')}` : '#e3f2fd';
+    document.body.style.setProperty('background-color', bgColor, 'important');
+
+    // ── State ───────────────────────────────────────────────────
+    let problemIdx = 0;
+    let score = 0;
+    let current = null; // { a, b, op, answer }
+
+    const problemArea = document.getElementById('problem-area');
+    const choicesEl   = document.getElementById('choices');
+    const progressBar = document.getElementById('progress-bar');
+    const progressText= document.getElementById('progress-text');
+    const scoreEl     = document.getElementById('score');
+    const trainMascot = document.getElementById('train-mascot');
+
+    function randInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function opSymbol(op) {
+        return op === '*' ? '×' : op;
+    }
+
+    // Build one random problem for the given operation (no sum limit here).
+    function buildOne(op) {
+        let a = randInt(MIN_OPERAND, MAX_OPERAND);
+        let b = randInt(MIN_OPERAND, MAX_OPERAND);
+        let answer;
+        if (op === '+') {
+            answer = a + b;
+        } else if (op === '-') {
+            if (b > a) [a, b] = [b, a]; // большее первым — без отрицательных ответов
+            answer = a - b;
+        } else { // '*'
+            answer = a * b;
+        }
+        return { a, b, op, answer };
+    }
+
+    // Build a random problem respecting operations, operand max AND the max sum/answer.
+    function makeProblem() {
+        const op = OPERATIONS[randInt(0, OPERATIONS.length - 1)];
+        let p = buildOne(op);
+        // Повторяем, пока ответ не впишется в заданный максимум суммы
+        let guard = 0;
+        while (p.answer > MAX_SUM && guard < 200) {
+            guard++;
+            p = buildOne(op);
+        }
+        return p;
+    }
+
+    // Generate a set of answer choices including the correct one.
+    // Все варианты держим в диапазоне [0, MAX_SUM], чтобы не было чисел больше максимума ответа.
+    function makeChoices(answer) {
+        const set = new Set([answer]);
+        // Сколько всего различных значений доступно в разрешённом диапазоне
+        const availableValues = MAX_SUM + 1; // 0..MAX_SUM
+        const targetCount = Math.min(CHOICE_COUNT, availableValues);
+
+        let guard = 0;
+        while (set.size < targetCount && guard < 300) {
+            guard++;
+            const delta = randInt(1, Math.max(3, Math.ceil(answer * 0.4) || 3));
+            const sign = Math.random() < 0.5 ? -1 : 1;
+            const candidate = answer + sign * delta;
+            // Отбрасываем варианты вне диапазона [0, MAX_SUM]
+            if (candidate < 0 || candidate > MAX_SUM) continue;
+            set.add(candidate);
+        }
+        // Если из-за узкого диапазона не хватило соседних значений — добираем любыми из диапазона
+        for (let v = 0; v <= MAX_SUM && set.size < targetCount; v++) {
+            set.add(v);
+        }
+        const arr = [...set];
+        // Перемешиваем
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
+
+    function renderProblem() {
+        current = makeProblem();
+
+        // Build a fresh train for this example: locomotive + 3 wagons.
+        problemArea.innerHTML = '';
+        const trainEl = document.createElement('div');
+        trainEl.id = 'problem-train';
+        trainEl.classList.add('arriving');
+
+        const loco = document.createElement('div');
+        loco.id = 'loco';
+        loco.textContent = '🚂';
+        trainEl.appendChild(loco);
+
+        // Helpers to build pieces of the train
+        const addWagon = (text, extraClass, id) => {
+            const w = document.createElement('div');
+            w.className = 'wagon' + (extraClass ? ' ' + extraClass : '');
+            if (id) w.id = id;
+
+            const body = document.createElement('div');
+            body.className = 'car-body';
+            body.textContent = text;
+            w.appendChild(body);
+
+            const under = document.createElement('div');
+            under.className = 'undercarriage';
+            under.innerHTML = '<span class="wheel left"></span><span class="wheel right"></span>';
+            w.appendChild(under);
+
+            trainEl.appendChild(w);
+            return w;
+        };
+        const addOpSign = (sym) => {
+            const s = document.createElement('div');
+            s.className = 'op-sign';
+            s.textContent = sym;
+            trainEl.appendChild(s);
+        };
+
+        // Train: 🚂 [a] (op) [b] (=) [?]
+        addWagon(current.a);          // wagon 1 — first number
+        addOpSign(opSymbol(current.op));
+        addWagon(current.b);          // wagon 2 — second number
+        addOpSign('=');
+        addWagon('?', 'answer-wagon', 'answer-slot'); // wagon 3 — the answer
+
+        problemArea.appendChild(trainEl);
+        // Снимаем класс въезда после окончания анимации
+        trainEl.addEventListener('animationend', () => trainEl.classList.remove('arriving'), { once: true });
+
+        // Choices
+        choicesEl.innerHTML = '';
+        makeChoices(current.answer).forEach(value => {
+            const btn = document.createElement('button');
+            btn.className = 'choice-btn';
+            btn.textContent = value;
+            btn.addEventListener('click', () => onChoice(value, btn));
+            choicesEl.appendChild(btn);
+        });
+
+        // Progress (мини-паровозик внизу едет справа налево — вперёд)
+        progressText.textContent = `Пример ${problemIdx + 1} из ${PROBLEM_COUNT}`;
+        progressBar.style.width = `${(problemIdx / PROBLEM_COUNT) * 100}%`;
+        trainMascot.style.right = `${(problemIdx / PROBLEM_COUNT) * 90}%`;
+    }
+
+    function onChoice(value, btn) {
+        const slot = document.getElementById('answer-slot');
+
+        if (value === current.answer) {
+            playClunk();
+            slot.querySelector('.car-body').textContent = value;
+            slot.classList.add('correct');
+            score++;
+            scoreEl.textContent = `⭐ ${score}`;
+
+            // Отключаем все кнопки
+            [...choicesEl.children].forEach(b => b.disabled = true);
+
+            // Этот поезд уезжает вперёд (влево), затем приезжает следующий пример
+            const trainEl = document.getElementById('problem-train');
+            setTimeout(() => {
+                playChugging(800);
+                trainEl.classList.remove('arriving');
+                trainEl.classList.add('leaving');
+            }, 500);
+
+            setTimeout(() => {
+                problemIdx++;
+                if (problemIdx < PROBLEM_COUNT) {
+                    renderProblem();
+                } else {
+                    onGameComplete();
+                }
+            }, 1300);
+        } else {
+            playWrong();
+            btn.classList.add('wrong-choice');
+            slot.classList.add('wrong');
+            setTimeout(() => slot.classList.remove('wrong'), 400);
+        }
+    }
+
+    function onGameComplete() {
+        playFanfare();
+        progressBar.style.width = '100%';
+        progressText.textContent = '🎉 Все примеры решены!';
+        trainMascot.style.right = '90%';
+        document.getElementById('win-score').textContent =
+            `Правильных ответов: ${score} из ${PROBLEM_COUNT} ⭐`;
+        document.getElementById('win-overlay').style.display = 'flex';
+    }
+
+    function startGame() {
+        problemIdx = 0;
+        score = 0;
+        scoreEl.textContent = '⭐ 0';
+        renderProblem();
+    }
+
+    // ── Fullscreen ──────────────────────────────────────────────
+    const fsBtn = document.getElementById('fullscreen-btn');
+    fsBtn.addEventListener('click', () => {
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+        else document.exitFullscreen();
+    });
+    document.addEventListener('fullscreenchange', () => {
+        fsBtn.textContent = document.fullscreenElement ? 'Exit Full Screen' : 'Full Screen';
+    });
+
+    // ── Start / restart ─────────────────────────────────────────
+    document.getElementById('start-btn').addEventListener('click', () => {
+        if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+        const ctx = actx;
+        const buf = ctx.createBuffer(1, 1, ctx.sampleRate);
+        const src = ctx.createBufferSource();
+        src.buffer = buf;
+        src.connect(ctx.destination);
+        src.start(0);
+        if (ctx.state !== 'running') ctx.resume();
+        document.getElementById('start-overlay').style.display = 'none';
+        startGame();
+    });
+
+    document.getElementById('again-btn').addEventListener('click', () => {
+        document.getElementById('win-overlay').style.display = 'none';
+        startGame();
+    });
+
+    // Показать первый пример под оверлеем (чтобы фон не был пустым)
+    renderProblem();
+
+    // ── Sound engine (Web Audio API) ────────────────────────────
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let actx = null;
+
+    function getAudioCtx() {
+        if (!actx) actx = new AudioCtx();
+        return actx;
+    }
+    async function readyCtx() {
+        const ctx = getAudioCtx();
+        if (ctx.state !== 'running') await ctx.resume();
+        return ctx;
+    }
+
+    async function playClunk() {
+        const ctx = await readyCtx();
+        const t = ctx.currentTime + 0.01;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(520, t);
+        osc.frequency.exponentialRampToValueAtTime(880, t + 0.12);
+        gain.gain.setValueAtTime(0.3, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+        osc.start(t); osc.stop(t + 0.19);
+    }
+
+    async function playWrong() {
+        const ctx = await readyCtx();
+        const t = ctx.currentTime + 0.01;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(160, t);
+        osc.frequency.exponentialRampToValueAtTime(100, t + 0.25);
+        gain.gain.setValueAtTime(0.3, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+        osc.start(t); osc.stop(t + 0.26);
+    }
+
+    // Rhythmic chug-chug while the example-train departs
+    async function playChugging(durationMs) {
+        const ctx = await readyCtx();
+        const t0 = ctx.currentTime + 0.01;
+        const interval = 0.22;
+        const steps = Math.floor(durationMs / (interval * 1000));
+
+        const bufLen = Math.ceil(ctx.sampleRate * 0.3);
+        const noiseBuffer = ctx.createBuffer(1, bufLen, ctx.sampleRate);
+        const data = noiseBuffer.getChannelData(0);
+        for (let k = 0; k < bufLen; k++) data[k] = Math.random() * 2 - 1;
+
+        for (let i = 0; i < steps; i++) {
+            const t = t0 + i * interval;
+            const thumpSrc = ctx.createBufferSource();
+            thumpSrc.buffer = noiseBuffer;
+            const thumpLp = ctx.createBiquadFilter();
+            thumpLp.type = 'lowpass'; thumpLp.frequency.value = 130; thumpLp.Q.value = 2;
+            const thumpGain = ctx.createGain();
+            thumpSrc.connect(thumpLp); thumpLp.connect(thumpGain); thumpGain.connect(ctx.destination);
+            thumpGain.gain.setValueAtTime(0.9, t);
+            thumpGain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+            thumpSrc.start(t); thumpSrc.stop(t + 0.13);
+        }
+    }
+
+    async function playFanfare() {
+        const ctx = await readyCtx();
+        const t0 = ctx.currentTime + 0.01;
+        const notes = [523, 659, 784, 1047];
+        notes.forEach((freq, i) => {
+            const t = t0 + i * 0.18;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.type = 'triangle';
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0, t);
+            gain.gain.linearRampToValueAtTime(0.3, t + 0.04);
+            gain.gain.setValueAtTime(0.3, t + 0.12);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+            osc.start(t); osc.stop(t + 0.36);
+        });
+    }
+</script>
+</body>
+</html>

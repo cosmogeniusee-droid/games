@@ -12,3 +12,4 @@
 * [Слоговой поезд](/SyllableTrain/config.html)
 * [Вредный гном — Корректор](/Corrector/config.html)
 * [Состав числа — Домики](/NumberHouses/config.html)
+* [Математический поезд](/MathTrain/config.html)
