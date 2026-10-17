@@ -1,0 +1,281 @@
+/* Детская стилистика */
+body {
+    background-color: #fff3e0;
+    color: #333;
+    font-family: 'Comic Sans MS', 'Segoe UI', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+}
+
+.game-container {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 25px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    max-width: 95vw;
+    width: 1100px;
+    --item: 64px; /* базовый размер предметов-эмодзи */
+}
+
+h1 {
+    color: #ef6c00;
+    margin-bottom: 10px;
+    font-size: 2em;
+    text-shadow: 2px 2px #ffcc80;
+}
+
+/* Панель управления и инфо */
+.controls {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 15px;
+    margin-bottom: 14px;
+    background-color: #ffe0b2;
+    border-radius: 15px;
+    border: 3px dashed #fb8c00;
+}
+
+.task-info {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #e65100;
+    margin: 0;
+    flex: 1 1 220px;
+    text-align: left;
+}
+
+.info-group { display: flex; gap: 15px; flex-wrap: wrap; }
+.score-info { font-size: 1.1em; color: #6d4c41; margin: 0; }
+.error-info { font-size: 1.1em; font-weight: bold; color: #d9534f; margin: 0; }
+
+.buttons-container {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+#check-button,
+#start-button,
+#fullscreen-button {
+    color: white;
+    padding: 10px 20px;
+    font-size: 1.2em;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.1s, transform 0.1s;
+}
+
+/* Главная кнопка — «Проверить» (яркая, крупнее) */
+#check-button {
+    background-color: #ff9800;
+    font-size: 1.35em;
+    font-weight: bold;
+    box-shadow: 0 5px #e65100;
+}
+#check-button:hover { background-color: #fb8c00; }
+#check-button:active { box-shadow: 0 2px #e65100; transform: translateY(3px); }
+
+/* Второстепенные кнопки */
+#start-button { background-color: #78909c; box-shadow: 0 5px #546e7a; }
+#start-button:hover { background-color: #607d8b; }
+#start-button:active { box-shadow: 0 2px #546e7a; transform: translateY(3px); }
+
+#fullscreen-button { background-color: #43a047; box-shadow: 0 5px #2e7d32; }
+#fullscreen-button:hover { background-color: #388e3c; }
+#fullscreen-button:active { box-shadow: 0 2px #2e7d32; transform: translateY(3px); }
+
+/* Задание: чипы вида "4 🍎" */
+.task-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.task-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    font-size: 1.4em;
+    font-weight: bold;
+    background: #fffde7;
+    border: 3px solid #fbc02d;
+    border-radius: 14px;
+    color: #5d4037;
+}
+
+.task-chip .chip-emoji { font-size: 1.3em; }
+
+/* Выполненное задание */
+.task-chip.done {
+    background: #e8f5e9;
+    border-color: #43a047;
+    color: #1b5e20;
+}
+.task-chip.done::after { content: ' ✅'; }
+
+/* Переизбыток предметов */
+.task-chip.over {
+    background: #ffebee;
+    border-color: #e53935;
+    color: #b71c1c;
+}
+
+/* Игровое поле: склад слева, корзина справа */
+.play-area {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 30px;
+}
+
+/* Склад перетаскиваемых предметов */
+.source-area {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-content: flex-start;
+    gap: 10px;
+    flex: 1 1 320px;
+    min-height: calc(var(--item) * 3);
+    padding: 14px;
+    background: #f1f8e9;
+    border: 3px dashed #9ccc65;
+    border-radius: 16px;
+}
+
+/* Один перетаскиваемый предмет */
+.item {
+    width: var(--item);
+    height: var(--item);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: calc(var(--item) * 0.7);
+    line-height: 1;
+    cursor: grab;
+    user-select: none;
+    touch-action: none; /* не прокручивать страницу при перетаскивании на тач-экранах */
+    transition: transform 0.08s;
+}
+.item:hover { transform: scale(1.1); }
+.item:active { cursor: grabbing; }
+.item.dragging { opacity: 0.35; }
+
+/* Плавающая копия под указателем */
+.drag-ghost {
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    transform: translate(-50%, -50%) scale(1.2);
+    filter: drop-shadow(0 6px 8px rgba(0,0,0,0.3));
+}
+
+/* Корзина — крупная эмодзи-картинка 🧺, предметы кладутся «в» неё сверху */
+.basket {
+    position: relative;
+    flex: 1 1 340px;
+    max-width: 460px;
+    min-height: calc(var(--item) * 5.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 24px;
+    transition: transform 0.15s, background 0.15s;
+}
+
+/* Сама корзина как большая эмодзи-подложка */
+.basket .basket-art {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: calc(var(--item) * 5);
+    line-height: 1;
+    user-select: none;
+    pointer-events: none;
+    filter: drop-shadow(0 8px 10px rgba(0,0,0,0.2));
+    z-index: 0;
+}
+
+/* Предметы лежат ВНУТРИ корзины — в её нижней (плетёной) части, под ободом */
+.basket-items {
+    position: absolute;
+    z-index: 1;
+    left: 50%;
+    bottom: calc(var(--item) * 0.6);   /* от дна корзины вверх */
+    transform: translateX(-50%);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-content: flex-end;
+    align-items: flex-end;
+    gap: 6px;
+    width: 64%;                        /* уже, чем корзина, т.к. она сужается книзу */
+    min-height: calc(var(--item) * 1.4);
+}
+
+/* Подсветка корзины при наведении предмета */
+.basket.hover {
+    background: rgba(255, 193, 112, 0.35);
+    transform: scale(1.03);
+}
+.basket.correct { background: rgba(129, 199, 132, 0.35); }
+.basket.wrong {
+    animation: shake 0.4s ease;
+    background: rgba(229, 115, 115, 0.35);
+}
+
+.basket-items .item {
+    cursor: pointer; /* клик/перетаскивание — чтобы вынуть обратно */
+    /* чуть мельче, чтобы предметы помещались в устье корзины */
+    width: calc(var(--item) * 0.78);
+    height: calc(var(--item) * 0.78);
+    font-size: calc(var(--item) * 0.55);
+    /* мягкая светлая подложка, чтобы эмодзи читались поверх корзины */
+    background: rgba(255,255,255,0.7);
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+
+.message-area {
+    margin-top: 18px;
+    padding: 18px;
+    background-color: #fff59d;
+    border: 4px solid #fbc02d;
+    border-radius: 15px;
+    font-size: 1.6em;
+    font-weight: bold;
+    color: #e65100;
+}
+
+.hidden { display: none; }
+.disabled { pointer-events: none; opacity: 0.7; }
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-6px); }
+    40%, 80% { transform: translateX(6px); }
+}
+
+@media (max-width: 640px) {
+    .game-container { --item: 50px; }
+}

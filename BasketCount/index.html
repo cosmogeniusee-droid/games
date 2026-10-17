@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Собери корзину 🧺</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <h1>🧺 Собери корзину 🍎</h1>
+
+        <div class="controls">
+            <p class="task-info" id="task-info">Положи в корзину нужное количество!</p>
+            <div class="info-group">
+                <p class="error-info">Ошибки: <span id="error-count">0</span></p>
+            </div>
+            <div class="buttons-container">
+                <button id="check-button">Проверить ✅</button>
+                <button id="start-button">Начать заново 🔄</button>
+                <button id="fullscreen-button">На весь экран ↔️</button>
+            </div>
+        </div>
+
+        <!-- Задание: сколько каждого предмета нужно -->
+        <div id="task-list" class="task-list"></div>
+
+        <div class="play-area">
+            <!-- Склад предметов, которые можно перетаскивать -->
+            <div id="source-area" class="source-area"></div>
+
+            <!-- Корзина — зона, куда складывают предметы -->
+            <div id="basket" class="basket">
+                <div class="basket-art">🧺</div>
+                <div id="basket-items" class="basket-items"></div>
+            </div>
+        </div>
+
+        <div id="message-area" class="message-area hidden"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
