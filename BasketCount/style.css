@@ -5,10 +5,11 @@ body {
     font-family: 'Comic Sans MS', 'Segoe UI', sans-serif;
     display: flex;
     justify-content: center;
-    align-items: flex-start;
+    align-items: center;      /* по центру по вертикали */
     min-height: 100vh;
     margin: 0;
     padding: 20px;
+    box-sizing: border-box;
 }
 
 .game-container {
