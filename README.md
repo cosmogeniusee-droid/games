@@ -16,3 +16,4 @@
 * [Собери корзину](/BasketCount/config.html)
 * [Больше, меньше или равно?](/Compare/config.html)
 * [Считай и решай](/CountMath/config.html)
+* [Графический диктант](/GraphicDictation/config.html)

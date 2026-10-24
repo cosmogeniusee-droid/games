@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Конфигуратор игры "Графический диктант"</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <style>
+        .dir-grid { display: flex; gap: 6px; flex-wrap: wrap; }
+        .dir-grid button { font-size: 1.3rem; width: 48px; }
+        .cmd-chip {
+            display: inline-flex; align-items: center; gap: 4px;
+            background: #e8eaf6; border: 1px solid #7986cb; border-radius: 10px;
+            padding: 4px 8px; font-size: 1.2rem; font-weight: bold; margin: 3px;
+        }
+        .cmd-chip .x { color: #c62828; cursor: pointer; font-size: 0.9rem; }
+        #cmd-chips { min-height: 48px; padding: 6px; border: 1px solid #dee2e6; border-radius: 8px; }
+    </style>
+</head>
+<body class="bg-light">
+<div class="container mt-4">
+    <h1 class="mb-2">✏️ Конфигуратор игры "Графический диктант" 📐</h1>
+    <p class="text-muted mb-4">Задайте команды (число клеток + направление). Ребёнок нарисует фигуру стрелками на клетчатом поле.</p>
+
+    <div class="row g-4">
+        <!-- Left -->
+        <div class="col-lg-5">
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Проверка</h5>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="check" id="checkStep" value="step" checked>
+                        <label class="form-check-label fs-5" for="checkStep">✅ После каждого хода</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="check" id="checkEnd" value="end">
+                        <label class="form-check-label fs-5" for="checkEnd">🏁 Только в конце (есть кнопка «Проверить» и «Отменить»)</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Направления</h5>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="diag" id="diagOff" value="0" checked>
+                        <label class="form-check-label fs-5" for="diagOff">➕ Только по горизонтали и вертикали (↑ ↓ ← →)</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="diag" id="diagOn" value="1">
+                        <label class="form-check-label fs-5" for="diagOn">✳️ С диагоналями (↖ ↗ ↙ ↘)</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Команды</h5>
+                    <p class="text-muted small mb-2">Введите число клеток и нажмите направление:</p>
+                    <div class="input-group mb-2" style="max-width: 320px;">
+                        <span class="input-group-text">Клеток</span>
+                        <input type="number" id="stepCount" class="form-control" value="1" min="1" max="15">
+                    </div>
+                    <div class="dir-grid mb-3">
+                        <button type="button" class="btn btn-outline-primary" data-dir="up">⬆️</button>
+                        <button type="button" class="btn btn-outline-primary" data-dir="down">⬇️</button>
+                        <button type="button" class="btn btn-outline-primary" data-dir="left">⬅️</button>
+                        <button type="button" class="btn btn-outline-primary" data-dir="right">➡️</button>
+                        <button type="button" class="btn btn-outline-primary dir-diag" data-dir="upleft">↖️</button>
+                        <button type="button" class="btn btn-outline-primary dir-diag" data-dir="upright">↗️</button>
+                        <button type="button" class="btn btn-outline-primary dir-diag" data-dir="downleft">↙️</button>
+                        <button type="button" class="btn btn-outline-primary dir-diag" data-dir="downright">↘️</button>
+                    </div>
+                    <label class="form-label small fw-bold mb-1">Последовательность:</label>
+                    <div id="cmd-chips"></div>
+                    <div class="mt-2 d-flex gap-2">
+                        <button type="button" id="undo-cmd" class="btn btn-outline-secondary btn-sm">↩️ Убрать последнюю</button>
+                        <button type="button" id="clear-cmd" class="btn btn-outline-danger btn-sm">🗑 Очистить</button>
+                    </div>
+
+                    <hr>
+                    <label for="cmdText" class="form-label small fw-bold mb-1">Или вставьте команды текстом (по одной на строку):</label>
+                    <textarea id="cmdText" class="form-control" rows="6" spellcheck="false"
+                        placeholder="Например:&#10;3 →&#10;2 ↑&#10;3 →&#10;2 ↓"></textarea>
+                    <div id="cmdText-warning" class="text-danger small mt-1 d-none"></div>
+                    <div class="form-text">Формат: число и стрелка — ← → ↑ ↓ (и ↖ ↗ ↙ ↘, если диагонали включены выше).</div>
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Оформление</h5>
+                    <div class="mb-0">
+                        <label for="bgColorInput" class="form-label">Цвет фона:</label>
+                        <input type="color" id="bgColorInput" class="form-control form-control-color" value="#e8eaf6">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Ссылка</h5>
+                    <div class="mb-3">
+                        <div class="input-group">
+                            <input type="text" id="urlDisplay" class="form-control" readonly>
+                            <button class="btn btn-outline-secondary" type="button" id="copyLink">Копировать</button>
+                        </div>
+                    </div>
+                    <a id="gameLink" href="#" target="_blank" class="btn btn-success w-100">🚀 Открыть игру в новой вкладке</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: preview -->
+        <div class="col-lg-7">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Превью</h5>
+                    <div class="ratio ratio-1x1 border rounded">
+                        <iframe id="previewFrame" src="" title="Превью игры"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const DIR_ARROW = {
+        up: '↑', down: '↓', left: '←', right: '→',
+        upleft: '↖', upright: '↗', downleft: '↙', downright: '↘',
+    };
+
+    // Разбор слова-направления (стрелки и русские/англ. слова) — как в игре
+    function parseDir(token) {
+        const t = token.trim().toLowerCase();
+        if (['↑','up','вверх','в','u'].includes(t)) return 'up';
+        if (['↓','down','вниз','н','d'].includes(t)) return 'down';
+        if (['←','left','влево','л','l'].includes(t)) return 'left';
+        if (['→','right','вправо','п','r'].includes(t)) return 'right';
+        if (['↖','upleft','вверх-влево','влево-вверх'].includes(t)) return 'upleft';
+        if (['↗','upright','вверх-вправо','вправо-вверх'].includes(t)) return 'upright';
+        if (['↙','downleft','вниз-влево','влево-вниз'].includes(t)) return 'downleft';
+        if (['↘','downright','вниз-вправо','вправо-вниз'].includes(t)) return 'downright';
+        return null;
+    }
+    const DEFAULT_MOVES = [
+        { dir: 'right', count: 2 }, { dir: 'up', count: 2 }, { dir: 'right', count: 2 },
+        { dir: 'down', count: 2 }, { dir: 'right', count: 2 },
+    ];
+
+    let moves = DEFAULT_MOVES.map(m => ({ ...m }));
+    const diagRadios = [...document.querySelectorAll('input[name="diag"]')];
+    const dirDiagBtns = [...document.querySelectorAll('.dir-diag')];
+
+    function diagOn() {
+        return (diagRadios.find(r => r.checked) || {}).value === '1';
+    }
+
+    function updateDirButtons() {
+        dirDiagBtns.forEach(b => { b.style.display = diagOn() ? '' : 'none'; });
+    }
+
+    const stepCount   = document.getElementById('stepCount');
+    const cmdChips     = document.getElementById('cmd-chips');
+    const cmdText      = document.getElementById('cmdText');
+    const cmdTextWarning = document.getElementById('cmdText-warning');
+    const bgColorInput = document.getElementById('bgColorInput');
+    const urlDisplay   = document.getElementById('urlDisplay');
+    const gameLink     = document.getElementById('gameLink');
+    const copyLink     = document.getElementById('copyLink');
+    const previewFrame = document.getElementById('previewFrame');
+    const checkRadios  = [...document.querySelectorAll('input[name="check"]')];
+
+    function getCheck() {
+        return (checkRadios.find(r => r.checked) || {}).value || 'step';
+    }
+
+    function renderChips() {
+        cmdChips.innerHTML = '';
+        if (moves.length === 0) {
+            cmdChips.innerHTML = '<span class="text-muted">Пусто — добавьте команды выше.</span>';
+            return;
+        }
+        moves.forEach((mv, i) => {
+            const chip = document.createElement('span');
+            chip.className = 'cmd-chip';
+            chip.innerHTML = `${mv.count}&nbsp;${DIR_ARROW[mv.dir]} <span class="x" title="Убрать">✕</span>`;
+            chip.querySelector('.x').addEventListener('click', () => {
+                moves.splice(i, 1);
+                renderChips();
+                syncTextFromMoves();
+                updateLink();
+            });
+            cmdChips.appendChild(chip);
+        });
+    }
+
+    function addMove(dir) {
+        const n = Math.max(1, parseInt(stepCount.value, 10) || 1);
+        // Объединяем с предыдущей, если то же направление
+        const last = moves[moves.length - 1];
+        if (last && last.dir === dir) last.count += n;
+        else moves.push({ dir, count: n });
+        renderChips();
+        syncTextFromMoves();
+        updateLink();
+    }
+
+    document.querySelectorAll('.dir-grid button').forEach(btn => {
+        btn.addEventListener('click', () => addMove(btn.dataset.dir));
+    });
+    document.getElementById('undo-cmd').addEventListener('click', () => { moves.pop(); renderChips(); syncTextFromMoves(); updateLink(); });
+    document.getElementById('clear-cmd').addEventListener('click', () => { moves = []; renderChips(); syncTextFromMoves(); updateLink(); });
+
+    function encodeMoves(ms) {
+        return ms.map(m => `${DIR_ARROW[m.dir]}:${m.count}`).join(',');
+    }
+
+    // Записать команды в текстовое поле (только стрелки)
+    function syncTextFromMoves() {
+        cmdText.value = moves.map(m => `${m.count} ${DIR_ARROW[m.dir]}`).join('\n');
+    }
+
+    // Разобрать текстовое поле в команды. Поддержка форматов "n dir", "dir n", "dir:n".
+    function parseCommandText(raw) {
+        const list = [];
+        const bad = [];
+        raw.split(/\r?\n/).forEach(line => {
+            const token = line.trim();
+            if (!token) return;
+            let m = token.match(/^(.+?)[:\s]+(\d+)$/); // dir n / dir:n
+            let dirPart, n;
+            if (m && parseDir(m[1]) !== null) { dirPart = m[1]; n = parseInt(m[2], 10); }
+            else {
+                m = token.match(/^(\d+)[:\s]+(.+)$/); // n dir
+                if (m) { dirPart = m[2]; n = parseInt(m[1], 10); }
+            }
+            if (!m) { bad.push(token); return; }
+            const dir = parseDir(dirPart);
+            if (!dir || isNaN(n) || n < 1) { bad.push(token); return; }
+            list.push({ dir, count: n });
+        });
+        return { list, bad };
+    }
+
+    // Применить содержимое текстового поля к командам (без перезаписи самого поля)
+    function applyTextToMoves() {
+        const { list, bad } = parseCommandText(cmdText.value);
+        if (cmdText.value.trim() !== '' && bad.length > 0) {
+            cmdTextWarning.textContent = 'Непонятные строки: ' + bad.join(', ');
+            cmdTextWarning.classList.remove('d-none');
+        } else {
+            cmdTextWarning.classList.add('d-none');
+        }
+        // Склеиваем подряд идущие одинаковые направления
+        const merged = [];
+        list.forEach(mv => {
+            const last = merged[merged.length - 1];
+            if (last && last.dir === mv.dir) last.count += mv.count;
+            else merged.push({ ...mv });
+        });
+        moves = merged;
+        renderChips();
+        updateLink(); // updateLink не трогает текстовое поле
+    }
+
+    const DIAG_SET = ['upleft', 'upright', 'downleft', 'downright'];
+
+    function updateLink() {
+        updateDirButtons();
+        const check = getCheck();
+        const diag = diagOn();
+
+        // Если диагонали выключены — убираем диагональные команды из набора
+        if (!diag && moves.some(m => DIAG_SET.includes(m.dir))) {
+            moves = moves.filter(m => !DIAG_SET.includes(m.dir));
+            renderChips();
+            syncTextFromMoves();
+        }
+
+        const baseUrl = 'index.html';
+        const p = new URLSearchParams();
+
+        const movesStr = encodeMoves(moves);
+        const defaultStr = encodeMoves(DEFAULT_MOVES);
+        if (movesStr && movesStr !== defaultStr) p.set('moves', movesStr);
+
+        if (check !== 'step') p.set('check', check);
+        if (diag) p.set('diag', '1');
+        if (bgColorInput.value !== '#e8eaf6') p.set('bgcolor', bgColorInput.value.substring(1));
+
+        const qs = p.toString();
+        const previewUrl = qs ? `${baseUrl}?${qs}` : baseUrl;
+        const fullUrl = `https://cosmogeniusee-droid.github.io/games/GraphicDictation/${previewUrl}`;
+
+        // В превью-кадре показываем готовую фигуру (preview=1),
+        // а в ссылке и кнопке «Открыть игру» — обычную игру без результата.
+        const previewParams = new URLSearchParams(p);
+        previewParams.set('preview', '1');
+        const iframeUrl = `${baseUrl}?${previewParams.toString()}`;
+
+        urlDisplay.value = fullUrl;
+        gameLink.href = previewUrl;
+        previewFrame.src = iframeUrl;
+    }
+
+    checkRadios.forEach(r => r.addEventListener('change', updateLink));
+    diagRadios.forEach(r => r.addEventListener('change', updateLink));
+    bgColorInput.addEventListener('input', updateLink);
+    cmdText.addEventListener('input', applyTextToMoves);
+
+    copyLink.addEventListener('click', () => {
+        navigator.clipboard.writeText(urlDisplay.value).then(() => {
+            const orig = copyLink.textContent;
+            copyLink.textContent = 'Скопировано!';
+            setTimeout(() => { copyLink.textContent = orig; }, 2000);
+        });
+    });
+
+    renderChips();
+    syncTextFromMoves();
+    updateLink();
+</script>
+</body>
+</html>

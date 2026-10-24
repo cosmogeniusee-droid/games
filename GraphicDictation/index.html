@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Графический диктант</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <h1>✏️ Графический диктант 📐</h1>
+
+        <div class="topbar">
+            <div class="info">
+                <span class="mode-badge" id="mode-badge"></span>
+                <span>Шаг: <span id="step-progress">0 / 0</span></span>
+                <span class="error-badge">Ошибки: <span id="error-count">0</span></span>
+            </div>
+            <div class="buttons">
+                <button class="btn btn-success hidden" id="check-button">Проверить ✅</button>
+                <button class="btn btn-neutral" id="restart-button">Сначала 🔄</button>
+                <button class="btn btn-primary" id="fullscreen-button">На весь экран ↔️</button>
+            </div>
+        </div>
+
+        <div class="layout">
+            <!-- Команды -->
+            <div class="commands">
+                <h2>Команды</h2>
+                <div id="commands-list"></div>
+            </div>
+
+            <!-- Поле -->
+            <div class="field-wrap">
+                <canvas id="field"></canvas>
+                <p class="draw-hint">Веди мышкой по клеткам, чтобы рисовать. ✏️</p>
+            </div>
+        </div>
+
+        <div id="message-area" class="message-area hidden"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
