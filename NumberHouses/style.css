@@ -159,8 +159,26 @@ h1 {
 
 /* Этаж: два окошка рядом */
 .floor {
+    position: relative;
     display: flex;
     gap: 6px;
+    padding-bottom: 18px;
+}
+
+.floor:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    right: -10px;
+    bottom: 0;
+    left: -10px;
+    height: 6px;
+    background-color: #c9863c;
+    border-radius: 2px;
+    box-shadow: 0 1px 0 #9c632e;
+}
+
+.floor:last-child {
+    padding-bottom: 0;
 }
 
 /* Многоколоночный корпус: этажи заполняют колонку сверху вниз,
@@ -168,9 +186,8 @@ h1 {
 .house-body.multi-column {
     flex-direction: column;
     flex-wrap: wrap;
-    /* Высота = (высота этажа + вертикальный зазор) * число строк в колонке.
-       Высота этажа = высота ячейки = cell * 0.8, зазор между этажами = 8px. */
-    max-height: calc((var(--cell) * 0.8 + 8px) * var(--rows-per-column, 7));
+    /* Учитываем высоту окон и место под перекрытие. */
+    max-height: calc((var(--cell) * 0.8 + 26px) * var(--rows-per-column, 7));
     column-gap: 110px;
     align-content: flex-start;
 }
