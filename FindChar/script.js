@@ -40,6 +40,28 @@ const FONT_SIZE = urlFontSize ? parseFloat(urlFontSize) : 1.7; // Размер �
 
 
 
+// --- Название и подпись в зависимости от набора символов ---
+const TEXTS_BY_CHAR_SET = {
+    letters: { title: 'Найди букву!', label: 'Нажми на все буквы:' },
+    numbers: { title: 'Найди цифру!', label: 'Нажми на все цифры:' },
+    both: { title: 'Найди букву или цифру!', label: 'Нажми на все буквы и цифры:' }
+};
+
+function applyCharSetTexts() {
+    const texts = TEXTS_BY_CHAR_SET[CHAR_SET];
+    document.title = `${texts.title} (Книжный стиль)`;
+    const titleEl = document.getElementById('game-title');
+    if (titleEl) titleEl.textContent = `🔍 ${texts.title} 📜`;
+    const labelEl = document.getElementById('target-label');
+    if (labelEl) labelEl.textContent = texts.label;
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', applyCharSetTexts);
+} else {
+    applyCharSetTexts();
+}
+
 // DOM элементы
 const gameBoard = document.getElementById('game-board');
 const targetLettersDisplay = document.getElementById('target-letters-display');
