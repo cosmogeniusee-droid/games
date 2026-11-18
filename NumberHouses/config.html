@@ -30,6 +30,10 @@
                             <input type="text" id="customNumbersInput" class="form-control" placeholder="Если пусто, числа выберутся случайно">
                         </div>
 
+                        <div class="mb-3 text-muted" id="houses-auto" style="display:none">
+                            Количество домиков: определяется по числам (<span id="housesAutoCount" class="fw-bold">0</span>)
+                        </div>
+
                         <div class="mb-3" id="range-group">
                             <div class="mb-3">
                                 <label for="min" class="form-label">Мин. число на крыше: <span id="minValue" class="fw-bold text-primary">5</span></label>
@@ -111,6 +115,19 @@
         const housesGroup = document.getElementById('houses-group');
         const floorsGroup = document.getElementById('floors-group');
 
+        const housesAuto = document.getElementById('houses-auto');
+        const housesAutoCount = document.getElementById('housesAutoCount');
+
+        // Числа на крышах: оставляем только цифры и запятые
+        function parseCustomNumbers() {
+            return inputs.customNumbers.value
+                .replace(/[^0-9,]/g, '')
+                .split(',')
+                .map(n => n.trim())
+                .filter(n => n !== '')
+                .join(',');
+        }
+
         // Управляет видимостью блоков в зависимости от режима и введённых чисел
         function updateVisibility() {
             const allCombos = allCombosToggle.checked;
@@ -118,6 +135,11 @@
 
             // min/max нужны, только если числа не заданы вручную
             rangeGroup.style.display = hasCustom ? 'none' : 'block';
+
+            // Количество домиков считается автоматически по введённым числам
+            const count = parseCustomNumbers().split(',').filter(n => n !== '').length;
+            housesAuto.style.display = (hasCustom && !allCombos && count > 0) ? 'block' : 'none';
+            housesAutoCount.textContent = count;
 
             // В режиме «все комбинации» домик всегда один и этажи считаются автоматически
             housesGroup.style.display = allCombos ? 'none' : 'block';
@@ -150,13 +172,7 @@
             const params = new URLSearchParams();
             const allCombos = allCombosToggle.checked;
 
-            // Числа на крышах: оставляем только цифры и запятые
-            const customNumbersValue = inputs.customNumbers.value
-                .replace(/[^0-9,]/g, '')
-                .split(',')
-                .map(n => n.trim())
-                .filter(n => n !== '')
-                .join(',');
+            const customNumbersValue = parseCustomNumbers();
 
             if (allCombos) params.set('allCombos', '1');
 
@@ -169,7 +185,8 @@
 
             // Домики и этажи не применяются в режиме «все комбинации»
             if (!allCombos) {
-                if (inputs.houses.value !== '3') params.set('houses', inputs.houses.value);
+                // Если числа заданы вручную, домики считаются автоматически
+                if (!customNumbersValue && inputs.houses.value !== '3') params.set('houses', inputs.houses.value);
                 if (inputs.floors.value !== '4') params.set('floors', inputs.floors.value);
             }
             if (inputs.cellSize.value !== '70') params.set('cellSize', inputs.cellSize.value);

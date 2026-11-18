@@ -94,7 +94,8 @@ function chooseRoofNumbers() {
     }
 
     if (CUSTOM_NUMBERS && CUSTOM_NUMBERS.length > 0) {
-        return CUSTOM_NUMBERS.slice(0, HOUSES_COUNT > CUSTOM_NUMBERS.length ? CUSTOM_NUMBERS.length : HOUSES_COUNT);
+        // Количество домиков определяется количеством введённых чисел
+        return CUSTOM_NUMBERS.slice();
     }
     const numbers = [];
     for (let i = 0; i < HOUSES_COUNT; i++) {
