@@ -1,0 +1,84 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Видео набора текста</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 16px; font-family: system-ui, "Segoe UI", Arial, sans-serif;
+    background: #eef1f5; color: #1f2937;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; }
+  h1 { font-size: 22px; margin: 0 0 12px; }
+  .panel {
+    background: #fff; border-radius: 12px; padding: 14px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.12); margin-bottom: 14px;
+  }
+  label { display: block; font-weight: 600; margin-bottom: 6px; }
+  textarea {
+    width: 100%; min-height: 90px; padding: 10px; font-size: 16px; font-family: inherit;
+    border: 1px solid #c4cbd6; border-radius: 8px; resize: vertical;
+  }
+  .row { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin-top: 12px; }
+  select, button {
+    font-size: 16px; padding: 9px 14px; border-radius: 8px; border: 1px solid #c4cbd6; background: #fff;
+  }
+  button.primary, a.btn {
+    background: #2563eb; color: #fff; border-color: #2563eb; cursor: pointer;
+    text-decoration: none; display: inline-block; font-size: 16px; padding: 9px 14px; border-radius: 8px;
+  }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  canvas, video { width: 100%; max-width: 432px; height: auto; display: block; margin: 0 auto; border-radius: 8px; background: #111827; }
+  #status { color: #4b5563; font-size: 14px; }
+  #result { display: none; }
+  #result .row { margin-top: 10px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Видео набора текста на клавиатуре</h1>
+
+  <div class="panel">
+    <label for="text">Текст</label>
+    <textarea id="text">Привет!{wait:1000} Меня зовут {Маша|1500}Кристина.
+{Ой, опечатка|1200}Этот текст печатается как настоящий.{wait:800}
+Hello, World!{back:6}Kris!</textarea>
+    <div id="hint" style="font-size:13px;color:#6b7280;margin-top:6px">
+      Команды в тексте:
+      <b>{wait:1500}</b> пауза 1500 мс;
+      <b>{back:5}</b> стереть 5 символов;
+      <b>{текст|2000}</b> напечатать «текст», подождать 2000 мс, стереть его.
+    </div>
+    <div class="row">
+      <div>
+        <label for="speed" style="display:inline;margin-right:6px">Скорость печати</label>
+        <select id="speed">
+          <option value="4">Медленно</option>
+          <option value="9" selected>Средне</option>
+        </select>
+      </div>
+      <button id="gen" class="primary">Сгенерировать видео</button>
+      <span id="status"></span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <canvas id="cv" width="576" height="720"></canvas>
+  </div>
+
+  <div class="panel" id="result">
+    <label>Готовое видео</label>
+    <video id="preview" controls playsinline></video>
+    <div class="row">
+      <a id="dl" class="btn" href="#">Скачать видео</a>
+      <button id="share" class="primary" style="display:none">Отправить (Messenger)</button>
+      <span id="size"></span>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
